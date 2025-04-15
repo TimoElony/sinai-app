@@ -1,4 +1,4 @@
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 
 type ClimbingArea = {
     areas: JSON[];
