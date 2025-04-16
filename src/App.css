@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+button {
+  @apply bg-gray-600 p-4 rounded-lg shadow-md;
+}
+
+h3 {
+  @apply text-lg font-semibold;
+}

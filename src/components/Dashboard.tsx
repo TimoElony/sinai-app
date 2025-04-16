@@ -1,10 +1,36 @@
-import { useState } from "react";
-import ClimbingAreas from "./ClimbingAreas";
+import { useEffect, useState } from "react";
+import ClimbingAreas from "./ClimbingAreas.tsx";
+import ClimbingRoutes from "./ClimbingRoutes.tsx";
+
+type ClimbingArea = {
+    id: string;
+    name: string;
+    description: string;
+    access: string; 
+}
 
 export default function Dashboard() {
 
   const [view, setView] = useState('none');
-  
+  const [areas, setAreas] = useState<ClimbingArea[]>([]);
+
+  useEffect (() => {
+    const fetchAreas = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/climbingareas');
+        const data = await response.json();
+        console.log(data);
+        setAreas(data);
+      } catch (error) {
+        console.error("Error fetching areas:", error);
+      } finally {
+        console.log("Fetch completed");
+      }
+    }
+
+    fetchAreas();
+  },[]);
+
   const clickHandler = (selection: string) => {
     setView(selection);
   }
@@ -13,22 +39,25 @@ export default function Dashboard() {
       <div className="flex flex-col items-center gap-4 rounded-xl p-4 mx-4">
         <h2>Online Routes Database</h2>
         <div className="flex flex-row flex-wrap gap-4">
-          <button onClick={() => clickHandler('areas')} className="bg-gray-600 p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold">Climbing Areas</h3>
-            <p className="text-gray-300">Browse all areas</p>
+          <button onClick={() => clickHandler('areas')}>
+            <h3>Climbing Areas</h3>
+            <p>Browse all areas</p>
           </button>
-          <button onClick={() => clickHandler('map')} className="bg-gray-600 p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold">Map</h3>
-            <p className="text-gray-300">Check via map</p>
+          <button onClick={() => clickHandler('map')}>
+            <h3>Map</h3>
+            <p>Check via map</p>
           </button>
-          <button onClick={() => clickHandler('routes')} className="bg-gray-600 p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold">Routes</h3>
-            <p className="text-gray-300">Search routes directly</p>
+          <button onClick={() => clickHandler('routes')}>
+            <h3>Routes</h3>
+            <p>Search routes directly</p>
           </button>
         </div>
         {view === 'areas' && (
-          <ClimbingAreas />
+          <ClimbingAreas areas={areas} />
           )}
+        {view === 'routes' && (
+          <ClimbingRoutes areas={areas} />
+        )}
       </div>
     );
 }
