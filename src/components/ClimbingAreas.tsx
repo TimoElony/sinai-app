@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 //     access: string;
 // }
 
+// import instead
+
 type AreaDetails = {
     id: number;
     name: string;
