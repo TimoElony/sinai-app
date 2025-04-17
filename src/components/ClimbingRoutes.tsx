@@ -1,22 +1,10 @@
 import { useEffect, useState } from "react";
+import { ClimbingArea, ClimbingRoute } from "../types/types";
 
-type ClimbingRoute = {
-    id: number;
-    name: string;
-    grade_best_guess: string;
-    length: number;
-    description: string;
-    climbing_area: string; 
-}
 
-type ClimbingArea = {
-    id: string;
-    name: string;
-    description: string;
-    access: string;
-}
 
-export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[] }) {
+
+export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
     const [selectedArea, setArea] = useState<ClimbingArea>(areas[0]);
 

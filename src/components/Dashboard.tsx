@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import ClimbingAreas from "./ClimbingAreas.tsx";
 import ClimbingRoutes from "./ClimbingRoutes.tsx";
+import { ClimbingArea } from "../types/types.ts";
 
-type ClimbingArea = {
-    id: string;
-    name: string;
-    description: string;
-    access: string; 
-}
 
 export default function Dashboard() {
 
