@@ -16,6 +16,6 @@ export type ClimbingRoute = {
     climbing_area: string; 
 }
 
-export type AreaDetails = {
+export type AreaDetails = ClimbingArea & {
     route_distribution: number[];
 }
