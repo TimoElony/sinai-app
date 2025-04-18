@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { ClimbingArea, AreaDetails } from "../types/types.ts";
 
 
@@ -17,7 +16,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                 }))}
             </select>
             {areaDetails && (
-                <div className="flex flex-col gap-4 rounded-xl p-4">
+                <div className="flex flex-col gap-4 rounded-lg p-4 bg-gray-200 shadow-md">
                     <h3>{areaDetails.name}</h3>
                     <p>{areaDetails.description}</p>
                 <div className="p-4 ">
@@ -38,7 +37,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                         </tbody>
                     </table>
                 </div>
-                <ul>{areaDetails.route_distribution}</ul>
+                
                 </div>
             )}
             {!areaDetails && (
