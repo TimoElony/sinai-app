@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ClimbingAreas from "./ClimbingAreas.tsx";
 import ClimbingRoutes from "./ClimbingRoutes.tsx";
-import { ClimbingArea, AreaDetails } from "../types/types.ts";
+import { ClimbingArea, AreaDetails, RouteDistribution } from "../types/types.ts";
 
 
 
@@ -53,9 +53,8 @@ export default function Dashboard() {
     try {
       if(area) {
         const response = await fetch(`http://localhost:5000/climbingareas/details/${area.name}`);
-        const data: AreaDetails = await response.json();
-        setAreaDetails({...data, ...area});
-        console.log(data);
+        const data: RouteDistribution = await response.json();
+        setAreaDetails({...area, route_distribution: [...data]});
       }
     } catch (error) {
       console.error("Error fetching area details:", error);
