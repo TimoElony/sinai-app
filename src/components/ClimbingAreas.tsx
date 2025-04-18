@@ -3,7 +3,7 @@ import { ClimbingArea, AreaDetails } from "../types/types.ts";
 
 
 
-export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void} ) {
+export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void} ) {
 
     
     return (
