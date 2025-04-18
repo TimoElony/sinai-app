@@ -40,7 +40,7 @@ export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
     return (
         <div className="flex flex-col gap-4 rounded-xl">
             <h3>Select Area you want to see Routes of</h3>
-            <select className="bg-gray-600 p-2 rounded-lg shadow-md" onChange={handleAreaChange}>
+            <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleAreaChange}>
                 {areas.map((area) => {
                     return(
                         <option key={area.id} value={area.name}>{area.name}</option>
@@ -49,7 +49,7 @@ export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
             </select>
             {routes.map((route) => {
                 return (
-                    <div key={route.id} className="bg-gray-600 p-4 rounded-lg shadow-md">
+                    <div key={route.id} className="bg-gray-200 p-4 rounded-lg shadow-md">
                         <h4 className="text-lg font-semibold">{route.name}</h4>
                         <p>{route.grade_best_guess}, {route.length}m</p>
                     </div>

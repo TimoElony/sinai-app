@@ -1,33 +1,65 @@
 import { useEffect, useState } from "react";
 import ClimbingAreas from "./ClimbingAreas.tsx";
 import ClimbingRoutes from "./ClimbingRoutes.tsx";
-import { ClimbingArea } from "../types/types.ts";
+import { ClimbingArea, AreaDetails } from "../types/types.ts";
+
+
 
 
 export default function Dashboard() {
 
   const [view, setView] = useState('none');
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
+  const [areaDetails, setAreaDetails] = useState<AreaDetails>();
+
 
   useEffect (() => {
-    const fetchAreas = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/climbingareas');
-        const data = await response.json();
-        console.log(data);
-        setAreas(data);
-      } catch (error) {
-        console.error("Error fetching areas:", error);
-      } finally {
-        console.log("Fetch completed");
-      }
-    }
 
     fetchAreas();
   },[]);
 
+  useEffect(() => {
+
+    if (areas) {
+      fetchDetails(areas[0]);
+    }
+  },[areas])
+
+  const fetchAreas = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/climbingareas');
+      const data = await response.json();
+      console.log(data);
+      setAreas(data);
+    } catch (error) {
+      console.error("Error fetching areas:", error);
+    } finally {
+      console.log("Fetch completed");
+    }
+  }
+
+
+  const areaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = e.target.value;
+    const area = areas.find(area => area.name === selectedValue);
+    if (area) {
+        fetchDetails(area);
+    } else {
+        console.error("Area not found");
+    }
+  }
+
+  const fetchDetails = async (area: ClimbingArea) => {
+    const response = await fetch(`http://localhost:5000/climbingareas/details/${area.name}`);
+    const data = await response.json();
+    setAreaDetails({...data, ...area});
+  };
+
   const clickHandler = (selection: string) => {
     setView(selection);
+    if (selection === 'areas') {
+      setAreaDetails(undefined);
+    }
   }
 
     return (
@@ -48,7 +80,7 @@ export default function Dashboard() {
           </button>
         </div>
         {view === 'areas' && (
-          <ClimbingAreas areas={areas} />
+          <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
           )}
         {view === 'routes' && (
           <ClimbingRoutes areas={areas} />

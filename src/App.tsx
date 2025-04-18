@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import './App.css'
 import TopSpot from './components/TopSpot.tsx'
 import Nav from './components/Nav.tsx'
 import Dashboard from './components/Dashboard.tsx'
@@ -9,7 +7,7 @@ import Highlights from './components/Highlights.tsx'
 function App() {
 
   return (
-    <div className="min-h-screen min-w-screen flex flex-col gap-4 bg-gray-800">
+    <div className="min-h-screen min-w-screen flex flex-col gap-4 bg-gray-100">
       <header className="grid grid-cols-3 items-center py-2">
         <div className="flex justify-center">
           <TopSpot />
@@ -23,7 +21,7 @@ function App() {
         <Dashboard/>
         <Highlights />
       </main>
-      <footer className='grid grid-cols-3 align-middle gap-4 p-4 bg-gray-600'>
+      <footer className='grid grid-cols-3 align-middle gap-4 p-4 bg-gray-200'>
         <div/>
         <div/>
         <p className="text-sm">Copyright</p>
