@@ -17,5 +17,10 @@ export type ClimbingRoute = {
 }
 
 export type AreaDetails = ClimbingArea & {
-    route_distribution: number[];
+    route_distribution: RouteDistribution;
 }
+
+export type RouteDistribution = {
+    grade_best_guess: string;
+    route_count: number;
+}[];

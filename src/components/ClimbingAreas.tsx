@@ -1,10 +1,9 @@
 import { ClimbingArea, AreaDetails } from "../types/types.ts";
-
-
+//import GradeHistogram from "./GradeHistogram.tsx";
+//<GradeHistogram data={areaDetails.route_distribution} />
 
 export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void} ) {
 
-    
     return (
         <div>
             <h3>Select Area</h3>
@@ -57,7 +56,6 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                 </div>
             </>
             )} 
-            
             
         </div>
     );

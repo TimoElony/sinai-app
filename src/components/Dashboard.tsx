@@ -34,7 +34,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Error fetching areas:", error);
     } finally {
-      console.log("Fetch completed");
+      console.log("Fetching areas completed");
     }
   }
 
@@ -49,10 +49,19 @@ export default function Dashboard() {
     }
   }
 
-  const fetchDetails = async (area: ClimbingArea) => {
-    const response = await fetch(`http://localhost:5000/climbingareas/details/${area.name}`);
-    const data = await response.json();
-    setAreaDetails({...data, ...area});
+  const fetchDetails = async (area: ClimbingArea | undefined) => {
+    try {
+      if(area) {
+        const response = await fetch(`http://localhost:5000/climbingareas/details/${area.name}`);
+        const data: AreaDetails = await response.json();
+        setAreaDetails({...data, ...area});
+        console.log(data);
+      }
+    } catch (error) {
+      console.error("Error fetching area details:", error);
+    } finally {
+      console.log("Fetching area details completed");
+    }
   };
 
   const clickHandler = (selection: string) => {
