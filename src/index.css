@@ -11,6 +11,10 @@ h3 {
   @apply text-lg font-semibold;
 }
 
+th, td {
+  @apply p-2 text-left;
+}
+
 @theme inline {
 
   --radius-sm: calc(var(--radius) - 4px);

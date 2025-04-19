@@ -7,6 +7,7 @@ import { ClimbingArea, ClimbingRoute } from "../types/types";
 export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
     const [selectedArea, setArea] = useState<ClimbingArea>(areas[0]);
+    const [selectedCrag, setCrag] = useState<string>(selectedArea.crags[0]);
 
     useEffect(() => {
         fetchData(selectedArea.name);
@@ -38,7 +39,7 @@ export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
     };
 
     return (
-        <div className="flex flex-col gap-4 rounded-xl">
+        <div className="flex flex-col gap-2">
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleAreaChange}>
                 {areas.map((area) => {
@@ -47,14 +48,40 @@ export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
                     );
                 })}
             </select>
-            {routes.map((route) => {
-                return (
-                    <div key={route.id} className="bg-gray-200 p-4 rounded-lg shadow-md">
-                        <h4 className="text-lg font-semibold">{route.name}</h4>
-                        <p>{route.grade_best_guess}, {route.length}m</p>
-                    </div>
-                );
-            })}
+            {selectedArea.crags.length > 1 && (
+                <>
+                    <h3>Select Crag within {selectedArea.name}</h3>
+                    <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleAreaChange}>
+                    {selectedArea.crags.map((crag) => {
+                        return(
+                            <option key={crag.id} value={crag.name}>{crag.name}</option>
+                        );
+                    })}
+                    </select>
+                </>
+            )}
+            <table class="table-auto">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Grade</th>
+                        <th>Length</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {routes.map((route) => {
+                        return (
+                            <tr key={route.id}>
+                                <td className="font-semibold">{route.name}</td>
+                                <td>{route.grade_best_guess}</td>
+                                <td>{route.length}m</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+                
+            
         </div>
     );
 }
