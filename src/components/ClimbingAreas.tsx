@@ -4,7 +4,7 @@ import { GradeBarChart } from "./GradeBarChart.tsx";
 export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void} ) {
 
     return (
-        <div className="flex flex-col gap-4 p-4">
+        <div className="flex flex-col justify-baseline gap-4 p-4">
             <h3>Select Area</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md w-1/3" onChange={changeHandler}>
                 {areas && (areas.map((area) => {
@@ -37,7 +37,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                     </div>
                     <div className="w-1/2">
                         <h3>Route Distribution for {areaDetails.name}</h3>
-                        {areaDetails.route_distribution ? <GradeBarChart data={areaDetails.route_distribution}/>:<p>no data</p>}
+                        {areaDetails.grade_distribution ? <GradeBarChart data={areaDetails.grade_distribution}/>:<p>no data</p>}
                     </div>
                 </div>
             )}

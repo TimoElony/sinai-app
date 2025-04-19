@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
-import { ClimbingArea, ClimbingRoute } from "../types/types";
+import React, { useEffect, useState } from "react";
+import { ClimbingArea, ClimbingRoute, AreaDetails } from "../types/types";
 
 
 
 
-export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
+export default function  ClimbingRoutes ({areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
-    const [selectedArea, setArea] = useState<ClimbingArea>(areas[0]);
-    const [selectedCrag, setCrag] = useState<string>(selectedArea.crags[0]);
+    const [selectedCrag, setCrag] = useState<string>("none");
 
     useEffect(() => {
-        fetchData(selectedArea.name);
-    }, []);
+        if (!areaDetails) return;
+        fetchRoutes(areaDetails.name, selectedCrag);
+    }, [areaDetails, selectedCrag]);
 
-    const fetchData = async (areaName: string) => {
+    const fetchRoutes = async (areaName: string, cragName: string) => {
         try {
-            const response = await fetch(`http://localhost:5000/climbingroutes/${areaName}`);
+            const response = await fetch(`http://localhost:5000/climbingroutes/${areaName}/${cragName}`);
             const data: ClimbingRoute[] = await response.json();
             setRoutes(data);
         } catch (error) {
@@ -27,16 +27,18 @@ export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
     };
 
     const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedValue = e.target.value;
-        fetchData(selectedValue);
-        const area = areas.find(area=> area.name === selectedValue);
-        if(area){
-            setArea(area);
-        } else {
-            console.error("Area not found");
-        }
-        
+        changeHandler(e);
+        fetchRoutes(e.target.value, selectedCrag);
+        setCrag("none");
     };
+
+    const handleCragChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedValue = e.target.value;
+        setCrag(selectedValue);
+        if (areaDetails) {
+            fetchRoutes(areaDetails.name, selectedValue);
+        }
+    }
 
     return (
         <div className="flex flex-col gap-2">
@@ -48,19 +50,20 @@ export default function  ClimbingRoutes ({ areas }: { areas: ClimbingArea[]}) {
                     );
                 })}
             </select>
-            {selectedArea.crags.length > 1 && (
+            {areaDetails && areaDetails.crags.length > 1 && (
                 <>
-                    <h3>Select Crag within {selectedArea.name}</h3>
-                    <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleAreaChange}>
-                    {selectedArea.crags.map((crag) => {
+                    <h3>Select Crag within {areaDetails.name}</h3>
+                    <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange}>
+                    {areaDetails.crags.map((crag) => {
+                        let cragName = crag.name; //error should not be here, name is a string and defined in types
                         return(
-                            <option key={crag.id} value={crag.name}>{crag.name}</option>
+                            <option key={cragName} value={cragName}>{cragName}</option>
                         );
                     })}
                     </select>
                 </>
             )}
-            <table class="table-auto">
+            <table className="table-auto">
                 <thead>
                     <tr>
                         <th>Name</th>

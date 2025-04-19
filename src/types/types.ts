@@ -18,10 +18,11 @@ export type ClimbingRoute = {
 }
 
 export type AreaDetails = ClimbingArea & {
-    route_distribution: RouteDistribution;
+    grade_distribution: {
+        grade_best_guess: string;
+        route_count: number;
+    }[];
+    crags: {
+        name: string;
+    }[];
 }
-
-export type RouteDistribution = {
-    grade_best_guess: string;
-    route_count: number;
-}[];
