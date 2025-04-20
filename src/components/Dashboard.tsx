@@ -72,9 +72,9 @@ export default function Dashboard() {
   }
 
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl p-4 mx-4">
-        <h2>Online Routes Database</h2>
-        <div className="flex flex-row flex-wrap gap-4">
+      <div className="flex flex-col gap-4 rounded-xl p-4 mx-4">
+        <h2 className="self-center">Online Routes Database</h2>
+        <div className="flex flex-row self-center flex-wrap gap-4">
           <button onClick={() => clickHandler('areas')}>
             <h3>Climbing Areas</h3>
             <p>Browse all areas</p>
@@ -88,12 +88,14 @@ export default function Dashboard() {
             <p>Search routes directly</p>
           </button>
         </div>
-        {view === 'areas' && (
-          <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
+        <div className="self-start">
+          {view === 'areas' && (
+            <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
+            )}
+          {view === 'routes' && (
+            <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
           )}
-        {view === 'routes' && (
-          <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
-        )}
+        </div>
       </div>
     );
 }

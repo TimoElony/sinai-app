@@ -7,17 +7,12 @@ import Highlights from './components/Highlights.tsx'
 function App() {
 
   return (
-    <div className="min-h-screen min-w-screen flex flex-col gap-4 bg-gray-100">
-      <header className="grid grid-cols-3 items-center py-2">
-        <div className="flex justify-center">
-          <TopSpot />
-        </div>
-        <div className='flex justify-center'></div>
-        <nav className='flex justify-center'>
-          <Nav />
-        </nav>
+    <div className="min-h-screen min-w-screen flex flex-col gap-4 bg-gray-100 px-4">
+      <header className="flex justify-between items-center py-2">
+        <TopSpot />
+        <Nav />
       </header>
-      <main className="flex items-center flex-col flex-grow gap-4">
+      <main className="flex-grow gap-4">
         <Dashboard/>
         <Highlights />
       </main>
