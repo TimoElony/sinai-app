@@ -72,30 +72,34 @@ export default function Dashboard() {
   }
 
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl p-4 mx-4">
-        <h2>Online Routes Database</h2>
-        <div className="flex justify-around flex-wrap gap-4">
-          <button onClick={() => clickHandler('areas')}>
-            <h3>Climbing Areas</h3>
-            <p>Browse all areas</p>
-          </button>
-          <button onClick={() => clickHandler('map')}>
-            <h3>Map</h3>
-            <p>Check via map</p>
-          </button>
-          <button onClick={() => clickHandler('routes')}>
-            <h3>Routes</h3>
-            <p>Search routes directly</p>
-          </button>
-        </div>
-        <div className="max-w-3xl">
-          {view === 'areas' && (
-            <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
+      <div className="grid grid-cols-12 gap-4 rounded-xl p-4 mx-4">
+        <div></div>
+        <div className="col-span-10 md:col-span-8">
+          <h1>Online Routes Database</h1>
+          <div className="flex justify-center flex-wrap gap-4">
+            <button onClick={() => clickHandler('areas')}>
+              <h3>Climbing Areas</h3>
+              <p>Browse all areas</p>
+            </button>
+            <button onClick={() => clickHandler('map')}>
+              <h3>Map</h3>
+              <p>Check via map</p>
+            </button>
+            <button onClick={() => clickHandler('routes')}>
+              <h3>Routes</h3>
+              <p>Search routes directly</p>
+            </button>
+          </div>
+          <div className="max-w-3xl">
+            {view === 'areas' && (
+              <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
+              )}
+            {view === 'routes' && (
+              <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
             )}
-          {view === 'routes' && (
-            <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
-          )}
+          </div>
         </div>
+        <div></div>
       </div>
     );
 }

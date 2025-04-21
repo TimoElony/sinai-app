@@ -47,7 +47,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler}: {a
     }
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col items-baseline gap-4 p-4">
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleAreaChange}>
                 {areas.map((area) => {
