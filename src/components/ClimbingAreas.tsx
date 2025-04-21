@@ -6,7 +6,8 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
     return (
         <div className="flex flex-col items-baseline gap-4 p-4">
             <h3>Select Area</h3>
-            <select className="bg-gray-200 p-2 rounded-lg shadow-md w-1/3" onChange={changeHandler}>
+            <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={changeHandler}>
+                <option value="none">all areas</option>
                 {areas && (areas.map((area) => {
                     return(
                     <option key={area.id} value={area.name}>{area.name}</option>
@@ -17,8 +18,8 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                 <div className="flex flex-col gap-4 rounded-lg p-4 bg-gray-200 shadow-md">
                     <h3>{areaDetails.name}</h3>
                     <p>{areaDetails.description}</p>
-                    <div className="p-4 ">
-                        <table className="text-left text-wrap bg-gray-300 rounded-sm shadow-md">
+                    <div className="p-4">
+                        <table className="[&_td]:overflow-hidden [&_td]:text-ellipsis bg-gray-300 rounded-sm shadow-md">
                             <thead>
                                 <tr>
                                     <th className="w-1/3">Access</th>
@@ -29,7 +30,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                             <tbody>
                                 <tr>
                                     <td>{areaDetails.access}</td>
-                                    <td>{areaDetails.access_from_dahab_minutes} minutes</td>
+                                    <td>{areaDetails.access_from_dahab_minutes}</td>
                                     <td>{areaDetails.route_count}</td>
                                 </tr>
                             </tbody>
@@ -44,12 +45,11 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
             {!areaDetails && (
             <>
                 <h3>Overview</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {areas.map((area) => {
                         return (
-                            <div key={area.id} className="bg-gray-200 p-4 rounded-lg shadow-md text-sm grid">
-                                <h4 className="text-lg font-semibold">{area.name}</h4>
-                                <p>Access: {area.access}</p>
+                            <div key={area.id} className="bg-gray-200 p-4 rounded-lg shadow-md [&_p]:overflow-ellipsis [&_p]:overflow-clip">
+                                <h3>{area.name}</h3>
                                 <p>Distance from Dahab: {area.access_from_dahab_minutes}</p>
                                 <p>Route Count: {area.route_count}</p>
                             </div>

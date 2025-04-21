@@ -41,6 +41,10 @@ export default function Dashboard() {
 
   const areaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = e.target.value;
+    if (selectedValue === 'none') {
+      setAreaDetails(undefined);
+      return;
+    }
     const area = areas.find(area => area.name === selectedValue);
     if (area) {
         fetchDetails(area);
@@ -72,21 +76,21 @@ export default function Dashboard() {
   }
 
     return (
-      <div className="grid grid-cols-12 gap-4 rounded-xl p-4 mx-4">
-        <div></div>
-        <div className="col-span-10 md:col-span-8">
+      <div className="grid grid-cols-8 gap-4 rounded-xl p-4 mx-4">
+
+        <div className="col-span-8 md:col-span-6 md:col-start-2">
           <h1>Online Routes Database</h1>
-          <div className="flex justify-center flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4">
             <button onClick={() => clickHandler('areas')}>
-              <h3>Climbing Areas</h3>
+              <h2>Climbing Areas</h2>
               <p>Browse all areas</p>
             </button>
             <button onClick={() => clickHandler('map')}>
-              <h3>Map</h3>
+              <h2>Map</h2>
               <p>Check via map</p>
             </button>
             <button onClick={() => clickHandler('routes')}>
-              <h3>Routes</h3>
+              <h2>Routes</h2>
               <p>Search routes directly</p>
             </button>
           </div>
@@ -99,7 +103,6 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-        <div></div>
       </div>
     );
 }
