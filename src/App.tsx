@@ -14,7 +14,6 @@ function App() {
       </header>
       <main className="flex-grow gap-4">
         <Dashboard/>
-        <Highlights />
       </main>
       <footer className='grid grid-cols-3 align-middle gap-4 p-4 bg-gray-200'>
         <div/>

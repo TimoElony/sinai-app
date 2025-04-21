@@ -2,7 +2,7 @@
 export default function Highlights () {
 
     return(
-        <div className="grid grid-cols-2 items-center gap-4">
+        <div className="grid grid-cols-2 items-center gap-4 m-4">
             <div className="p-4">
                 <h2 className="text-2xl font-semibold">Topos for climbers in Sinai</h2>
                 <p>Exploring the remote wilderness of the Sinai</p>
