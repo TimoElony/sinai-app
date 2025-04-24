@@ -57,22 +57,9 @@ export default function Dashboard() {
     try {
       if(area) {
         const response = await fetch(`https://sinai-backend.onrender.com/climbingareas/details/${area.name}`);
-        const responseData = await response.json();
-        
-        const transformedDetails = {
-          ...responseData,
-          crags: Array.isArray(responseData.crags)
-          ? responseData.crags.map((crag: Object) => {
-            if(typeof crag === "string") {
-              return { name: crag };
-            } 
-          }): [],
-        }
-        
-        
-        
+        const responseData = await response.json();        
 
-        setAreaDetails({...area, ...transformedDetails});
+        setAreaDetails({...area, ...responseData});
 
       }
     } catch (error) {
