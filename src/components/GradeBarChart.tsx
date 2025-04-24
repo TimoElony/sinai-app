@@ -1,6 +1,6 @@
 "use client"
 
-import { Area, Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 import {
   CardContent,

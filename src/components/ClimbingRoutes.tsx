@@ -61,8 +61,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler}: {a
                     <h3>Select Crag within {areaDetails.name}</h3>
                     <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange} defaultValue={areaDetails?.crags[0]?.name}>
                         {areaDetails.crags.map((crag) => {
-                            console.log(crag);
-                            let cragName = crag.name; //error should not be here, name is a string and defined in types
+                            let cragName = (typeof crag === 'string'? crag : crag.name); //error should not be here, name is a string and defined in types
                             return(
                                 <option key={cragName} value={cragName}>{cragName}</option>
                             );
