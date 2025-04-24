@@ -1,6 +1,6 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Area, Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 import {
   CardContent,
@@ -12,7 +12,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { RouteDistribution } from "@/types/types"
+import { AreaDetails } from "@/types/types"
 
 const chartConfig = {
   route_count: {
@@ -21,7 +21,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function GradeBarChart({data}: {data: RouteDistribution}) {
+export function GradeBarChart({data}: {data: AreaDetails['grade_distribution']}) {
   return (
     <>
       <CardContent>

@@ -1,7 +1,6 @@
 import TopSpot from './components/TopSpot.tsx'
 import Nav from './components/Nav.tsx'
 import Dashboard from './components/Dashboard.tsx'
-import Highlights from './components/Highlights.tsx'
 
 
 function App() {
