@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { ClimbingArea, ClimbingRoute, AreaDetails } from "../types/types";
+import { ClimbingArea, ClimbingRoute, AreaDetails, Crag } from "../types/types";
 
 
 
 
-export default function  ClimbingRoutes ({areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void}) {
+export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void, crags: Crag[] | undefined}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
-    const [selectedCrag, setCrag] = useState<string>(areaDetails?.crags[0]?.name || ""); // Initialize with the first crag name or an empty string
+    const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
 
     useEffect(() => {
         if (!areaDetails) { 
@@ -16,7 +16,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler}: {a
             fetchRoutes(areaDetails.name, 'singlecrag');
         } else {
             console.log("Fetching routes for the first crag");
-            fetchRoutes(areaDetails.name, areaDetails.crags[0].name);
+            fetchRoutes(areaDetails.name, crags ? crags[0].name: ""); // Use the first crag name or an empty string
         }
     }, [areaDetails]);
 
@@ -56,12 +56,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler}: {a
                     );
                 })}
             </select>
-            {areaDetails && areaDetails.crags.length > 1 && (
+            {areaDetails && crags && crags.length > 1  && (
                 <>
                     <h3>Select Crag within {areaDetails.name}</h3>
-                    <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange} defaultValue={areaDetails?.crags[0]?.name}>
-                        {areaDetails.crags.map((crag) => {
-                            let cragName = (typeof crag === 'string'? crag : crag.name); //error should not be here, name is a string and defined in types
+                    <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange} value={selectedCrag}>
+                        {crags.map((crag) => {
+                            const cragName = crag.name;
                             return(
                                 <option key={cragName} value={cragName}>{cragName}</option>
                             );

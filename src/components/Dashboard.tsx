@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ClimbingAreas from "./ClimbingAreas.tsx";
 import ClimbingRoutes from "./ClimbingRoutes.tsx";
-import { ClimbingArea, AreaDetails } from "../types/types.ts";
+import { ClimbingArea, AreaDetails} from "../types/types.ts";
 
 
 
@@ -100,7 +100,7 @@ export default function Dashboard() {
               <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
               )}
             {view === 'routes' && (
-              <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
+              <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags}/>
             )}
           </div>
         </div>
