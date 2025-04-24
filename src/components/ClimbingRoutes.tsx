@@ -22,7 +22,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler}: {a
 
     const fetchRoutes = async (areaName: string, cragName: string) => {
         try {
-            const response = await fetch(`http://localhost:5000/climbingroutes/${areaName}/${cragName}`);
+            const response = await fetch(`https://sinai-backend.onrender.com/climbingroutes/${areaName}/${cragName}`);
             const data: ClimbingRoute[] = await response.json();
             setRoutes(data);
         } catch (error) {

@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   const fetchAreas = async () => {
     try {
-      const response = await fetch('http://localhost:5000/climbingareas');
+      const response = await fetch('https://sinai-backend.onrender.com/climbingareas');
       const data = await response.json();
       console.log(data);
       setAreas(data);
@@ -56,7 +56,7 @@ export default function Dashboard() {
   const fetchDetails = async (area: ClimbingArea | undefined) => {
     try {
       if(area) {
-        const response = (await fetch(`http://localhost:5000/climbingareas/details/${area.name}`)).json();
+        const response = (await fetch(`https://sinai-backend.onrender.com/climbingareas/details/${area.name}`)).json();
         
         setAreaDetails({...area, ...await response});
 
