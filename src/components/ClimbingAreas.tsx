@@ -15,10 +15,10 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                 }))}
             </select>
             {areaDetails && (
-                <div className="flex flex-col gap-4 rounded-lg p-4 bg-gray-200 shadow-md">
+                <div className="flex flex-col gap-4 rounded-lg p-2 bg-gray-200 shadow-md">
                     <h3>{areaDetails.name}</h3>
                     <p>{areaDetails.description}</p>
-                    <div className="p-4">
+                    <div className="md:p-4">
                         <table className="[&_td]:overflow-hidden [&_td]:text-ellipsis bg-gray-300 rounded-sm shadow-md">
                             <thead>
                                 <tr>
@@ -36,7 +36,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                             </tbody>
                         </table>
                     </div>
-                    <div className="w-1/2">
+                    <div className="md:w-1/2">
                         <h3>Route Distribution for {areaDetails.name}</h3>
                         {areaDetails.grade_distribution ? <GradeBarChart data={areaDetails.grade_distribution}/>:<p>no data</p>}
                     </div>
