@@ -22,16 +22,14 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                         <table className="[&_td]:overflow-hidden [&_td]:text-ellipsis bg-gray-300 rounded-sm shadow-md">
                             <thead>
                                 <tr>
-                                    <th className="w-1/3">Access</th>
+                                    <th className="w-2/3">Access</th>
                                     <th className="w-1/3">Distance from Dahab</th>
-                                    <th className="">Route Count</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>{areaDetails.access}</td>
                                     <td>{areaDetails.access_from_dahab_minutes}</td>
-                                    <td>{areaDetails.route_count}</td>
                                 </tr>
                             </tbody>
                         </table>
