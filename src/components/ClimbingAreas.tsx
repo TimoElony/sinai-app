@@ -28,7 +28,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{areaDetails.access}</td>
+                                    <td>{areaDetails.access.length > 120 ? areaDetails.access.substring(0,120) + "..." : areaDetails.access}</td>
                                     <td>{areaDetails.access_from_dahab_minutes}</td>
                                 </tr>
                             </tbody>
