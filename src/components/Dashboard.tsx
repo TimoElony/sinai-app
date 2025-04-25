@@ -77,7 +77,7 @@ export default function Dashboard() {
   }
 
     return (
-      <div className="grid grid-cols-8 gap-4 rounded-xl p-4 mx-4">
+      <div className="grid grid-cols-8 gap-4 rounded-xl mx-2">
 
         <div className="col-span-8 md:col-span-6 md:col-start-2">
           <h1>Online Routes Database</h1>
