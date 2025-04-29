@@ -13,7 +13,7 @@ const submitLogin  = async (email: string, password: string) => {
             }),
         });
         const data = await response.json();
-        console.log("Login response:", data.access_token);
+        console.log("Login response:", data.token);
     } catch (error) {
         console.error("Error logging in:", error);
         
@@ -30,7 +30,7 @@ export default function Login() {
     return(
         <>
             {toggleLogin ? (
-                <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4">
                     <h1>Login</h1>
                     <label htmlFor="emailField">email*</label>
                     <input
@@ -53,11 +53,13 @@ export default function Login() {
                             console.log("Login clicked");
                             submitLogin(email, password);
                         }}
-                        className="bg-blue-500 text-white rounded-md p-2"
-                    />
+                        className= "rounded-md p-2"
+                    >
+                        Login
+                    </button>
                 </div>
             ): (
-                <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4">
                     <h1>Sign up</h1>
                     <label htmlFor="emailField">email*</label>
                     <input
