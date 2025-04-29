@@ -20,6 +20,26 @@ const submitLogin  = async (email: string, password: string) => {
     }
 }
 
+const submitSignup = async (email: string, password: string) => {
+    try {
+        const response = await fetch('https://sinai-backend.onrender.com/auth/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+            }),
+        });
+
+        const data = await response.json();
+        console.log("Signup response:", data.message);
+    } catch (error) {
+        console.error("Error signing up:", error);
+    }
+}
+
 export default function Login() {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -57,6 +77,14 @@ export default function Login() {
                     >
                         Login
                     </button>
+                    <button
+                        onClick={() => {
+                            setToggleLogin(!toggleLogin);
+                        }}
+                        className= "rounded-md p-2"
+                    >
+                        Sign Up
+                    </button>
                 </div>
             ): (
                 <div className="flex items-center gap-4">
@@ -80,11 +108,13 @@ export default function Login() {
                     <button
                         onClick={() => {
                             console.log("Sign up clicked");
-                            //submitSignup(email, password);
+                            submitSignup(email, password);
                             setToggleLogin(!toggleLogin);
                         }}
                         className="bg-blue-500 text-white rounded-md p-2"
-                    />
+                    >
+                        Sign Up
+                    </button>
                 </div>
             )}
         </>
