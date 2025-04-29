@@ -13,7 +13,7 @@ const submitLogin  = async (email: string, password: string) => {
             }),
         });
         const data = await response.json();
-        console.log("Login response:", data.token);
+        console.log("Login response:", data.message, data.token);
     } catch (error) {
         console.error("Error logging in:", error);
         
@@ -111,7 +111,7 @@ export default function Login() {
                             submitSignup(email, password);
                             setToggleLogin(!toggleLogin);
                         }}
-                        className="bg-blue-500 text-white rounded-md p-2"
+                        className="bg-blue-500 rounded-md p-2"
                     >
                         Sign Up
                     </button>
