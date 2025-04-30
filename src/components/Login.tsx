@@ -1,24 +1,6 @@
 import { useState } from "react";
 
-const submitLogin  = async (email: string, password: string) => {
-    try {
-        const response = await fetch('https://sinai-backend.onrender.com/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-            }),
-        });
-        const data = await response.json();
-        console.log("Login response:", data.message, data.token);
-    } catch (error) {
-        console.error("Error logging in:", error);
-        
-    }
-}
+
 
 const submitSignup = async (email: string, password: string) => {
     try {
@@ -40,17 +22,37 @@ const submitSignup = async (email: string, password: string) => {
     }
 }
 
-export default function Login() {
+export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; setSessionToken: React.Dispatch<React.SetStateAction<string>>}) {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [toggleLogin, setToggleLogin] = useState<boolean>(true);
 
+    const submitLogin  = async (email: string, password: string) => {
+        try {
+            const response = await fetch('https://sinai-backend.onrender.com/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                }),
+            });
+            const data = await response.json();
     
+            console.log("Login response:", data.message);
+            setSessionToken(data.token);
+        } catch (error) {
+            console.error("Error logging in:", error);
+            
+        }
+    }
 
     return(
         <>
-            {toggleLogin ? (
-                <div className="flex items-center gap-4">
+            {!loggedIn ? (toggleLogin ? (
+                <div className="flex flex-col md:flex-row md:items-center gap-4 m-4">
                     <h1>Login</h1>
                     <label htmlFor="emailField">email*</label>
                     <input
@@ -79,11 +81,11 @@ export default function Login() {
                     </button>
                     <button
                         onClick={() => {
-                            setToggleLogin(!toggleLogin);
+                            setToggleLogin(false);
                         }}
                         className= "rounded-md p-2"
                     >
-                        Sign Up
+                        No account yet?
                     </button>
                 </div>
             ): (
@@ -114,6 +116,17 @@ export default function Login() {
                         className="bg-blue-500 rounded-md p-2"
                     >
                         Sign Up
+                    </button>
+                </div>
+            )): (
+                <div className="flex items-center m-4">
+                    <button
+                        onClick={() => {
+                            setSessionToken('');
+                        }}
+                        className="bg-red-500 rounded-md p-2"
+                    >
+                        Logout
                     </button>
                 </div>
             )}
