@@ -4,7 +4,7 @@ import { ClimbingArea, ClimbingRoute, AreaDetails, Crag } from "../types/types";
 
 
 
-export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void, crags: Crag[] | undefined}) {
+export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags, sessionToken}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void; crags: Crag[] | undefined; sessionToken: string}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
     const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
 
@@ -46,8 +46,39 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         }
     }
 
+    const addRoute = async () => {
+        if (!sessionToken) {
+            console.error("No session token available");
+            return;
+        }
+
+        console.log("Adding route with session token:", sessionToken);
+        try {
+            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/new', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionToken}`,
+                },
+                body: JSON.stringify({
+                    name: "New Route",
+                    grade: "5.10a",
+                    length: 30,
+                    bolts: 5,
+                    info: 'sampleDescription',
+                    area: 'Wadi Gnai',
+                }),
+            });
+            const data = await response.json();
+            console.log("Route added:", data);
+        } catch (error) {
+            console.error("Error adding route:", error);
+        }
+    };
+
     return (
         <div className="flex flex-col items-baseline gap-4 p-4">
+            <button className="rounded-lg p-2 shadow md" onClick={()=>addRoute()}>Add Route</button>
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 {areas.map((area) => {

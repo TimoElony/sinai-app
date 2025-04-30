@@ -6,7 +6,7 @@ import { ClimbingArea, AreaDetails} from "../types/types.ts";
 
 
 
-export default function Dashboard() {
+export default function Dashboard({sessionToken}: {sessionToken: string}) {
 
   const [view, setView] = useState('none');
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
@@ -100,7 +100,7 @@ export default function Dashboard() {
               <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
               )}
             {view === 'routes' && (
-              <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags}/>
+              <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags} sessionToken={sessionToken}/>
             )}
           </div>
         </div>

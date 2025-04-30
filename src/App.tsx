@@ -12,7 +12,7 @@ function App() {
         <Login loggedIn={!(sessionToken==='')} setSessionToken={setSessionToken}/>
       </header>
       <main>
-        <Dashboard/>
+        <Dashboard sessionToken={sessionToken}/>
       </main>
     </div>
   )
