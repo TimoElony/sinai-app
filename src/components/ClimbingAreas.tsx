@@ -6,7 +6,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
     return (
         <div className="flex flex-col items-baseline gap-4 md:p-4">
             <h3>Select Area</h3>
-            <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={changeHandler}>
+            <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || "none"} onChange={changeHandler}>
                 <option value="none">all areas</option>
                 {areas && (areas.map((area) => {
                     return(

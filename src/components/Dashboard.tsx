@@ -71,9 +71,6 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
 
   const clickHandler = (selection: string) => {
     setView(selection);
-    if (selection === 'areas') {
-      setAreaDetails(undefined);
-    }
   }
 
     return (
