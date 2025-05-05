@@ -8,6 +8,7 @@ type newClimbingRoute = {
     info: string;
     area: string;
     crag: string;
+    setters: string;
 };
 
 export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}:{sessionToken: string; isVisible: boolean; setIsVisible: (isVisible: boolean) => void}) {
@@ -19,7 +20,8 @@ export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}
         bolts: 0,
         info: "",
         area: "",
-        crag: ""
+        crag: "",
+        setters: ""
     });
 
     useEffect(() => {
@@ -44,7 +46,7 @@ export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}
 
      const addRoute = async (newRoute: newClimbingRoute) => {
             if (!sessionToken) {
-                console.error("No session token available");
+                console.error("Not logged in");
                 return;
             } else if (newRoute.name === "") {
                 console.error('No route name added')
@@ -73,7 +75,7 @@ export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}
         <>
         {isVisible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-4 rounded shadow-lg z-10">
+            <div className="bg-white p-4 rounded shadow-lg min-w-2xl z-10">
                 <h2 className="text-xl font-bold mb-4">Create New Route</h2>
                 <form className="flex flex-col" onSubmit={(e) => {
                     e.preventDefault();
@@ -94,8 +96,10 @@ export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}
                     <input type="text" placeholder="Area" value={newRoute.area} onChange={(e) => setNewRoute({ ...newRoute, area: e.target.value })} className="border p-2 mb-4 w-full"/>
                     <label className="mb-2">Crag</label>
                     <input type="text" placeholder="Crag" value={newRoute.crag} onChange={(e) => setNewRoute({...newRoute, crag: e.target.value})} className="border p-2 mb-4 w-full"/>
-                    <button type="submit" className="bg-blue-500 text-white p-2 rounded">Add Route</button>
-                    <button type="button" className="bg-red-500 text-white p-2 rounded mt-2" onClick={() => setIsVisible(false)}>Close</button>
+                    <label className="mb-2">Route Setters</label>
+                    <input type="text" placeholder="Setters" value={newRoute.setters} onChange={(e) => setNewRoute({...newRoute, setters: e.target.value})} className="border p-2 mb-4 w-full"/>
+                    <button type="submit" className="p-2 rounded">Add Route</button>
+                    <button type="button" className="p-2 rounded mt-2" onClick={() => setIsVisible(false)}>Close</button>
                 </form>
             </div>
             <div className="fixed inset-0 bg-black opacity-50 z-0"></div>
