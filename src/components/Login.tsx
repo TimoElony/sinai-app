@@ -26,6 +26,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [toggleLogin, setToggleLogin] = useState<boolean>(true);
+    const [hideAll, setHideAll] = useState<boolean>(false);
 
     const submitLogin  = async (email: string, password: string) => {
         try {
@@ -51,7 +52,8 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
 
     return(
         <>
-            {!loggedIn ? (toggleLogin ? (
+            {hideAll && <button className="bg-none underline" onClick={()=>setHideAll(false)}>Login</button>}
+            {!loggedIn && !hideAll ? (toggleLogin ? (
                 <div className="flex flex-col md:flex-row md:items-center gap-4 m-4">
                     <h1>Login</h1>
                     <label htmlFor="emailField">email*</label>
@@ -123,6 +125,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                     <button
                         onClick={() => {
                             setSessionToken('');
+                            setHideAll(true);
                         }}
                         className="StandardButton"
                     >
