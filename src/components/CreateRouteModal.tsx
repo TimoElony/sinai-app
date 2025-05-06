@@ -98,8 +98,8 @@ export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}
                     <input type="text" placeholder="Crag" value={newRoute.crag} onChange={(e) => setNewRoute({...newRoute, crag: e.target.value})} className="border p-2 mb-4 w-full"/>
                     <label className="mb-2">Route Setters</label>
                     <input type="text" placeholder="Setters" value={newRoute.setters} onChange={(e) => setNewRoute({...newRoute, setters: e.target.value})} className="border p-2 mb-4 w-full"/>
-                    <button type="submit" className="p-2 rounded">Add Route</button>
-                    <button type="button" className="p-2 rounded mt-2" onClick={() => setIsVisible(false)}>Close</button>
+                    <button type="submit" className="StandardButton" >Add Route</button>
+                    <button type="button" className="StandardButton mt-2" onClick={() => setIsVisible(false)}>Close</button>
                 </form>
             </div>
             <div className="fixed inset-0 bg-black opacity-50 z-0"></div>

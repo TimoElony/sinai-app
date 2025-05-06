@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-button {
+.StandardButton {
   @apply bg-gray-200 p-4 rounded-lg shadow-md;
 }
 

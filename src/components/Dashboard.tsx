@@ -82,15 +82,15 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         <div className="col-span-8 md:col-span-6 md:col-start-2">
           <h1>Online Routes Database</h1>
           <div className="flex flex-wrap gap-4">
-            <button onClick={() => clickHandler('areas')}>
+            <button className="StandardButton" onClick={() => clickHandler('areas')}>
               <h2>Climbing Areas</h2>
               <p>Browse all areas</p>
             </button>
-            <button onClick={() => clickHandler('map')}>
+            <button className="StandardButton" onClick={() => clickHandler('map')}>
               <h2>Map</h2>
               <p>Check via map</p>
             </button>
-            <button onClick={() => clickHandler('routes')}>
+            <button className="StandardButton" onClick={() => clickHandler('routes')}>
               <h2>Routes</h2>
               <p>Search routes directly</p>
             </button>
