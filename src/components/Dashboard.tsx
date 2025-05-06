@@ -7,15 +7,19 @@ import { ClimbingArea, AreaDetails} from "../types/types.ts";
 
 
 export default function Dashboard({sessionToken}: {sessionToken: string}) {
-
+  const [loading, setLoading] = useState(false);
   const [view, setView] = useState('none');
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
   const [areaDetails, setAreaDetails] = useState<AreaDetails>();
 
 
-  useEffect (() => {
-
-    fetchAreas();
+  useEffect ( () => {
+    setLoading(true);
+    try{
+      fetchAreas();
+    } catch(err) {
+      console.error('error fetching areas');
+    }
   },[]);
 
   useEffect(() => {
@@ -31,10 +35,9 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       const data = await response.json();
       console.log(data);
       setAreas(data);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching areas:", error);
-    } finally {
-      console.log("Fetching areas completed");
     }
   }
 
@@ -100,6 +103,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
               <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags} sessionToken={sessionToken}/>
             )}
           </div>
+          {loading &&
+          <h2>Loading areas...</h2>}
         </div>
       </div>
     );
