@@ -75,7 +75,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                             console.log("Login clicked");
                             submitLogin(email, password);
                         }}
-                        className= "rounded-md p-2"
+                        className="StandardButton"
                     >
                         Login
                     </button>
@@ -83,7 +83,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                         onClick={() => {
                             setToggleLogin(false);
                         }}
-                        className= "rounded-md p-2"
+                        className="StandardButton"
                     >
                         No account yet?
                     </button>
@@ -113,7 +113,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                             submitSignup(email, password);
                             setToggleLogin(!toggleLogin);
                         }}
-                        className="bg-blue-500 rounded-md p-2"
+                        className="StandardButton"
                     >
                         Sign Up
                     </button>
@@ -124,7 +124,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                         onClick={() => {
                             setSessionToken('');
                         }}
-                        className="bg-red-500 rounded-md p-2"
+                        className="StandardButton"
                     >
                         Logout
                     </button>
