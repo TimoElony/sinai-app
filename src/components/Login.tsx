@@ -54,9 +54,8 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
         <>
             {hideAll && <button className="bg-none underline m-4" onClick={()=>setHideAll(false)}>Login</button>}
             {(!loggedIn && !hideAll) ? (
-                toggleLogin ? (
-                    <div className="flex flex-col md:flex-row md:items-center gap-4 m-4">
-                        <h1>Login</h1>
+                <div className="flex flex-col md:flex-row md:items-center gap-4 m-4">
+                        <h1>{toggleLogin ? 'Login' : 'Sign up'}</h1>
                         <label htmlFor="emailField">email*</label>
                         <input
                             type="email"
@@ -75,53 +74,29 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                         />
                         <button
                             onClick={() => {
-                                console.log("Login clicked");
-                                submitLogin(email, password);
+                                if (toggleLogin){
+                                    console.log("Login clicked");
+                                    submitLogin(email, password);
+                                } else {
+                                    console.log("Sign up clicked");
+                                    submitSignup(email, password);
+                                    setToggleLogin(!toggleLogin);
+                                }
                             }}
                             className="StandardButton"
                         >
-                            Login
+                            {toggleLogin? 'Login' : 'Sign up'}
                         </button>
-                        <button
-                            onClick={() => {
-                                setToggleLogin(false);
-                            }}
-                            className="StandardButton"
-                        >
-                            No account yet?
-                        </button>
+                        toggleLogin && 
+                            <button
+                                onClick={() => {
+                                    setToggleLogin(false);
+                                }}
+                                className="StandardButton"
+                            >
+                                No account yet?
+                            </button>
                     </div>
-                ): (
-                    <div className="flex items-center gap-4">
-                        <h1>Sign up</h1>
-                        <label htmlFor="emailField">email*</label>
-                        <input
-                            type="email"
-                            id="emailField"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="border-2 border-gray-300 rounded-md p-2"
-                        />
-                        <label htmlFor="passwordField">password*</label>
-                        <input
-                            type="password"
-                            id="passwordField"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="border-2 border-gray-300 rounded-md p-2"
-                        />
-                        <button
-                            onClick={() => {
-                                console.log("Sign up clicked");
-                                submitSignup(email, password);
-                                setToggleLogin(!toggleLogin);
-                            }}
-                            className="StandardButton"
-                        >
-                            Sign Up
-                        </button>
-                    </div>
-                )
             ): (
                 !hideAll &&
                     <div className="flex items-center m-4">
