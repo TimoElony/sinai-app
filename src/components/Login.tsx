@@ -81,6 +81,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                                     console.log("Sign up clicked");
                                     submitSignup(email, password);
                                     setToggleLogin(!toggleLogin);
+                                    alert('Check your email to confirm Sign up')
                                 }
                             }}
                             className="StandardButton"

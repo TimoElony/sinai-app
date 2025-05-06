@@ -28,3 +28,20 @@ export type AreaDetails = ClimbingArea & {
     }[];
     crags: Crag[];
 }
+
+export type NewClimbingRoute = {
+    name: string;
+    grade: string;
+    length: number;
+    bolts: number;
+    info: string;
+    area: string;
+    crag: string;
+    setters: string;
+};
+
+export type WallTopo = {
+    name: string;
+    extracted_filename: string;
+    climbing_routes_ids: string[];
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, Crag } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
+import WallTopos from "./WallTopos";
 
 
 
@@ -19,9 +20,11 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         }  else if (areaDetails.crags.length <= 1) {
             console.log("No crags available for this area");
             fetchRoutes(areaDetails.name, 'singlecrag');
+            setCrag(areaDetails.name)
         } else {
             console.log("Fetching routes for the first crag");
             fetchRoutes(areaDetails.name, crags ? crags[0].name: ""); // Use the first crag name or an empty string
+            setCrag(crags ? crags[0].name: areaDetails.name);
         }
     }, [areaDetails]);
 
@@ -40,7 +43,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
 
     const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         changeHandler(e);
-        fetchRoutes(e.target.value, selectedCrag);
     };
 
     const handleCragChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -50,8 +52,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
             fetchRoutes(areaDetails.name, selectedValue);
         }
     }
-
-   
 
     return (
         <div className="flex flex-col items-baseline gap-4 p-4">
@@ -99,8 +99,9 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                     })}
                 </tbody>
             </table>
-                
-            
+            {selectedCrag !== "" && areaDetails && (
+                <WallTopos area={areaDetails.name} crag={selectedCrag}/>
+            )}            
         </div>
     );
 }

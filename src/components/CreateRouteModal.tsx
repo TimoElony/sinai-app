@@ -1,19 +1,9 @@
 import { useEffect, useState } from "react";
-
-type newClimbingRoute = {
-    name: string;
-    grade: string;
-    length: number;
-    bolts: number;
-    info: string;
-    area: string;
-    crag: string;
-    setters: string;
-};
+import { NewClimbingRoute } from "../types/types";
 
 export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}:{sessionToken: string; isVisible: boolean; setIsVisible: (isVisible: boolean) => void}) {
     
-    const [newRoute, setNewRoute] = useState<newClimbingRoute>({
+    const [newRoute, setNewRoute] = useState<NewClimbingRoute>({
         name: "",
         grade: "",
         length: 0,
@@ -44,7 +34,7 @@ export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}
         };
     }, []);
 
-     const addRoute = async (newRoute: newClimbingRoute) => {
+     const addRoute = async (newRoute: NewClimbingRoute) => {
             if (!sessionToken) {
                 console.error("Not logged in");
                 return;
