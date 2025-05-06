@@ -87,7 +87,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                         >
                             {toggleLogin? 'Login' : 'Sign up'}
                         </button>
-                        toggleLogin && 
+                        {toggleLogin && 
                             <button
                                 onClick={() => {
                                     setToggleLogin(false);
@@ -96,6 +96,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                             >
                                 No account yet?
                             </button>
+                        }   
                     </div>
             ): (
                 !hideAll &&
