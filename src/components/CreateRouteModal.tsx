@@ -75,7 +75,7 @@ export default function CreateRouteModal({sessionToken, isVisible, setIsVisible}
         <>
         {isVisible && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white p-4 rounded shadow-lg min-w-2xl z-10">
+            <div className="bg-white p-4 rounded shadow-lg min-w-md md:min-w-2xl z-10">
                 <h2 className="text-xl font-bold mb-4">Create New Route</h2>
                 <form className="flex flex-col" onSubmit={(e) => {
                     e.preventDefault();
