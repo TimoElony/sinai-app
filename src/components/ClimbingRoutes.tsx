@@ -117,10 +117,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                             </tr>
                         </thead>
                     <tbody>
-                    {routes.filter((route)=>(topo.climbing_routes_ids.includes(route.id))).sort((a, b) => a.wall_topo_numbers[0] - b.wall_topo_numbers[0]).map((route) => {
+                    {routes.filter((route)=>(topo.climbing_routes_ids.includes(route.id))).sort((a, b) => a.wall_topo_numbers[a.wall_topo_ids.indexOf(topo.id)] - b.wall_topo_numbers[b.wall_topo_ids.indexOf(topo.id)]).map((route) => {
                         return (
                             <tr key={route.id} className="hover:bg-gray-200">
-                                <td>{route.wall_topo_numbers[0]}</td>
+                                <td>{route.wall_topo_numbers[0]}<span className="text-xs opacity-30">{route.wall_topo_ids.indexOf(topo.id)}</span></td>
                                 <td className="font-semibold">{route.name}</td>
                                 <td>{route.grade_best_guess}</td>
                                 <td>{route.length}m</td>

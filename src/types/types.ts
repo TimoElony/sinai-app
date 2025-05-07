@@ -54,6 +54,7 @@ export type NewClimbingRoute = {
 };
 
 export type WallTopo = {
+    id: string;
     name: string;
     description: string;
     details: string;
