@@ -23,10 +23,10 @@ export default function WallTopos ({area, crag}:{area: string ;crag: string}) {
         <>
             <h1>Topos</h1>
             {topos.map((topo)=> {
-                const url = `https://vwpzcvemysspydbtlcxo.supabase.co/storage/v1/object/public/sinaibucket/${topo.extracted_filename}`;
+                const url = `https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/${topo.extracted_filename}?width=400&quality=75&f=webp`;
             return (
-                <div className="flex flex-col">
-                    <h2 key={topo.name}>{url}</h2>
+                <div key={topo.name} className="flex flex-col max-w-vw">
+                    <h2 >{url}</h2>
                     <img src={url}/>
                 </div>
             )})}

@@ -63,12 +63,11 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         const responseData = await response.json();        
 
         setAreaDetails({...area, ...responseData});
+        console.log('areaDetails fetched and set')
 
       }
     } catch (error) {
       console.error("Error fetching area details:", error);
-    } finally {
-      console.log("Fetching area details completed");
     }
   };
 
