@@ -42,6 +42,8 @@ export type NewClimbingRoute = {
 
 export type WallTopo = {
     name: string;
+    description: string;
+    details: string;
     extracted_filename: string;
     climbing_routes_ids: string[];
 }
