@@ -26,7 +26,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [toggleLogin, setToggleLogin] = useState<boolean>(true);
-    const [hideAll, setHideAll] = useState<boolean>(false);
+    const [hideAll, setHideAll] = useState<boolean>(true);
 
     const submitLogin  = async (email: string, password: string) => {
         try {
