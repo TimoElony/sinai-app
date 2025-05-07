@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ClimbingArea, ClimbingRoute, AreaDetails, Crag } from "../types/types";
+import { ClimbingArea, ClimbingRoute, AreaDetails, Crag, WallTopo } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
-import WallTopos from "./WallTopos";
 
 
 
@@ -10,6 +9,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
     const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [topos, setTopos] = useState<WallTopo[]>([])
+
     const toggleModal = () => {
         setIsModalVisible(!isModalVisible);
     };
@@ -19,24 +20,27 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
             return;
         }  else if (areaDetails.crags.length <= 1) {
             console.log("No crags available for this area");
-            fetchRoutes(areaDetails.name, 'singlecrag');
+            fetchRoutesAndTopos(areaDetails.name, 'singlecrag');
             setCrag(areaDetails.name)
         } else {
             console.log("Fetching routes for the first crag");
-            fetchRoutes(areaDetails.name, crags ? crags[0].name: ""); // Use the first crag name or an empty string
+            fetchRoutesAndTopos(areaDetails.name, crags ? crags[0].name: ""); // Use the first crag name or an empty string
             setCrag(crags ? crags[0].name: areaDetails.name);
         }
     }, [areaDetails]);
 
-    const fetchRoutes = async (areaName: string, cragName: string) => {
+    const fetchRoutesAndTopos = async (areaName: string, cragName: string) => {
         try {
             const response = await fetch(`https://sinai-backend.onrender.com/climbingroutes/${areaName}/${cragName}`);
-            const data: ClimbingRoute[] = await response.json();
-            setRoutes(data);
+            const routeData: ClimbingRoute[] = await response.json();
+            setRoutes(routeData);
+            const topoResponse = await fetch(`https://sinai-backend.onrender.com/walltopos/${areaName}/${cragName}`);
+            const topoData: WallTopo[] = await topoResponse.json();
+            setTopos(topoData);
         } catch (error) {
-            console.error("Error fetching routes:");
+            console.error("Error fetching routes or topos:");
         } finally {
-            console.log("Fetch completed");
+            console.log("Fetching routes and topos completed");
         }
         
     };
@@ -49,7 +53,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         const selectedValue = e.target.value;
         setCrag(selectedValue);
         if (areaDetails) {
-            fetchRoutes(areaDetails.name, selectedValue);
+            fetchRoutesAndTopos(areaDetails.name, selectedValue);
         }
     }
 
@@ -79,29 +83,54 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                     </select>
                 </>
             )}
-            <table className="table-auto">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Grade</th>
-                        <th>Length</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {routes.map((route) => {
+            <h1>Topos</h1>
+            {topos.map((topo)=> {
+                const maxWidth = 800;
+                const breakpoints = [400, 600, 800, 1200]; // Your preferred breakpoints
+                const src = "https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/"
+                // Generate srcset with Cloudflare resizing
+                const srcSet = breakpoints
+                  .filter(bp => bp <= maxWidth)
+                  .map(bp => `${src}${topo.extracted_filename}?width=${bp}&format=webp ${bp}w`)
+                  .join(', ');
+
+                const url = `${src}${topo.extracted_filename}?width=${maxWidth}&quality=75&format=webp`;
+            return (
+                <div key={topo.name} className="flex flex-col max-w-vw">
+                    <h2 >{topo.description}</h2>
+                    <img
+                        src={url}
+                        srcSet={srcSet}
+                        sizes={`(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}
+                        alt={topo.description}
+                        style={{ width: '100%', height: 'auto' }}
+                        loading="lazy"
+                    />
+                    <p>{topo.details}</p>
+                    <table className="table-auto">
+                        <thead>
+                            <tr>
+                                <th>No in Topo</th>
+                                <th>Name</th>
+                                <th>Grade</th>
+                                <th>Length</th>
+                            </tr>
+                        </thead>
+                    <tbody>
+                    {routes.filter((route)=>(topo.climbing_routes_ids.includes(route.id))).sort((a, b) => a.wall_topo_numbers[0] - b.wall_topo_numbers[0]).map((route) => {
                         return (
-                            <tr key={route.id}>
+                            <tr key={route.id} className="hover:bg-gray-200">
+                                <td>{route.wall_topo_numbers[0]}</td>
                                 <td className="font-semibold">{route.name}</td>
                                 <td>{route.grade_best_guess}</td>
                                 <td>{route.length}m</td>
                             </tr>
                         );
                     })}
-                </tbody>
-            </table>
-            {selectedCrag !== "" && areaDetails && (
-                <WallTopos area={areaDetails.name} crag={selectedCrag}/>
-            )}            
+                    </tbody>
+                    </table>
+                </div>
+            )})}           
         </div>
     );
 }

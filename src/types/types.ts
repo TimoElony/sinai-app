@@ -9,12 +9,25 @@ export type ClimbingArea = {
 }
 
 export type ClimbingRoute = {
-    id: number;
+    id: string;
     name: string;
     grade_best_guess: string;
+    fa_grade: string;
     length: number;
-    description: string;
-    climbing_area: string; 
+    bolts: number;
+    pitches: number;
+    approach: string;
+    plain_description: string;
+    descent: string;
+    setters: string;
+    fa_day: number;
+    fa_month: number;
+    fa_year: number;
+    climbing_area: string;
+    climbing_sector: string;
+    wall_topo_ids: string[];
+    detail_topo_ids: string[];
+    wall_topo_numbers: number[];
 }
 
 export type Crag = {
@@ -46,4 +59,6 @@ export type WallTopo = {
     details: string;
     extracted_filename: string;
     climbing_routes_ids: string[];
+    climbing_area_name: string;
+    climbing_sector: string;
 }
