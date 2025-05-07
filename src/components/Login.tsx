@@ -55,6 +55,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
             {hideAll && <button className="bg-none underline m-4" onClick={()=>setHideAll(false)}>Login</button>}
             {(!loggedIn && !hideAll) ? (
                 <div className="flex flex-col md:flex-row md:items-center gap-4 m-4">
+                        <button className="underline m-4" onClick={()=>setHideAll(true)}>hide</button>
                         <h1>{toggleLogin ? 'Login' : 'Sign up'}</h1>
                         <label htmlFor="emailField">email*</label>
                         <input
