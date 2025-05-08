@@ -53,11 +53,11 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
 
     return( 
         <Dialog>
-            <DialogTrigger><Button>Add route to this crag</Button></DialogTrigger>
+            <DialogTrigger asChild><Button>Add route to this crag</Button></DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                 <DialogTitle>Create new route</DialogTitle>
-                <DialogDescription>
+                </DialogHeader>
                     <form className="flex flex-col" onSubmit={(e) => {
                         e.preventDefault();
                         addRoute(newRoute);
@@ -76,8 +76,9 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                         <input type="text" placeholder="Setters" value={newRoute.setters} onChange={(e) => setNewRoute({...newRoute, setters: e.target.value})} className="border p-2 mb-4 w-full"/>
                         <Button type="submit" className="px-2" >Add Route</Button>
                     </form>
+                <DialogDescription>
+                    click to submit this route permanently
                 </DialogDescription>
-                </DialogHeader>
             </DialogContent>
         </Dialog>
     );

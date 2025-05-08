@@ -1,16 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, Crag, WallTopo } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-  } from "@/components/ui/dialog";
-  import { Button } from "@/components/ui/button";
-import { renderToPipeableStream } from "react-dom/server";
+import { Button } from "@/components/ui/button";
 
 
 
@@ -20,7 +11,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
     const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
     const [topos, setTopos] = useState<WallTopo[]>([]);
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
-    const [formTopoNumber, setFormTopoNumber] = useState<Number>(1);
+    const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
 
 
     useEffect(() => {
@@ -66,14 +57,37 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
     }
 
     const addRouteToTopo = async (topoId: string) => {
-        const selectedRouteTopos = selectedRoute?.wall_topo_ids;
-        if(selectedRouteTopos?.includes(topoId)) {
-            alert('Route is already part of this Topo or doesnt exist')
+        // topo numbers are mapped to the array of linked topos, if the route is already part then it will be updated, otherwise kept previous value
+        // if numbers were missing in the db they will be added as 0
+        // if the topo is new to the route then the given number and the id of the topo will be appended
+        if(!selectedRoute){
             return;
+        }
+        const index = selectedRoute.wall_topo_ids.indexOf(topoId);
+        const wall_topo_numbers = selectedRoute.wall_topo_ids.map((_,i)=> (
+            i===index 
+                ? formTopoNumber
+                : (selectedRoute.wall_topo_numbers[i] || 0)
+        ));
+
+        if(index && index != -1) {
+            const payload = {id: selectedRoute.id, wall_topo_numbers: wall_topo_numbers};
+            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionToken}`,
+                },
+                body: JSON.stringify(payload),
+            });
+            console.log(response);
         } else {
+            console.log('route does not exist on this topo yet')
             try {
-                const payload = {id: selectedRoute?.id, wall_topo_id: topoId }
-                const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/addTopo', {
+                const wall_topo_ids_new = [...selectedRoute.wall_topo_ids, topoId];
+                const wall_topo_numbers_new = [...wall_topo_numbers, formTopoNumber];
+                const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
+                const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/addToTopo', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -83,13 +97,14 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                 });
                 console.log(response);
             } catch (error) {
-                console.error('error posting updated info')
+                console.error('error posting add route to topo')
             }
         }
     }
 
     return (
         <div className="flex flex-col items-baseline gap-4 p-4">
+            <Button onClick={()=>fetchRoutesAndTopos(areaDetails?.name || "", selectedCrag)}>Refresh</Button>
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
@@ -100,20 +115,19 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                 })}
             </select>
             {areaDetails && crags && crags.length > 1  && (
-                <>  
+                <>    
+                    <h3>Select Crag within {areaDetails.name}</h3>
                     <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
-                        <h3>Select Crag within {areaDetails.name}</h3>
+                        <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange} value={selectedCrag}>
+                            {crags.map((crag) => {
+                                const cragName = crag.name;
+                                return(
+                                    <option key={cragName} value={cragName}>{cragName}</option>
+                                );
+                            })}
+                        </select>
                         {sessionToken && <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name}/>}
                     </div>
-                    
-                    <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange} value={selectedCrag}>
-                        {crags.map((crag) => {
-                            const cragName = crag.name;
-                            return(
-                                <option key={cragName} value={cragName}>{cragName}</option>
-                            );
-                        })}
-                    </select>
                 </>
             )}
             <h1>Topos</h1>
@@ -142,7 +156,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                                     {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
                                 </select>
                                 <label htmlFor="topoNumber" className="text-xs"># in Topo</label>
-                                <input  className="bg-accent max-w-8" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(Number(e.target.value))}/>
+                                <input  className="bg-accent max-w-8" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
                                 <Button type="submit">add/edit route</Button>
                             </form>
                         )}
@@ -166,7 +180,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                             </tr>
                         </thead>
                     <tbody>
-                    {routes.filter((route)=>(topo.climbing_routes_ids.includes(route.id))).sort((a, b) => a.wall_topo_numbers[a.wall_topo_ids.indexOf(topo.id)] - b.wall_topo_numbers[b.wall_topo_ids.indexOf(topo.id)]).map((route) => {
+                    {routes.filter((route)=>(route.wall_topo_ids.includes(topo.id))).sort((a, b) => a.wall_topo_numbers[a.wall_topo_ids.indexOf(topo.id)] - b.wall_topo_numbers[b.wall_topo_ids.indexOf(topo.id)]).map((route) => {
                         return (
                             <tr key={route.id} className="hover:bg-gray-200">
                                 <td>{route.wall_topo_numbers[0]}<span className="text-xs opacity-30">{route.wall_topo_ids.indexOf(topo.id)}</span></td>
