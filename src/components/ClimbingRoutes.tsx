@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, Crag, WallTopo } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog";
+  import { Button } from "@/components/ui/button";
+import { renderToPipeableStream } from "react-dom/server";
 
 
 
@@ -8,12 +18,10 @@ import CreateRouteModal from "./CreateRouteModal";
 export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags, sessionToken}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void; crags: Crag[] | undefined; sessionToken: string}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
     const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [topos, setTopos] = useState<WallTopo[]>([])
+    const [topos, setTopos] = useState<WallTopo[]>([]);
+    const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
+    const [formTopoNumber, setFormTopoNumber] = useState<Number>(1);
 
-    const toggleModal = () => {
-        setIsModalVisible(!isModalVisible);
-    };
 
     useEffect(() => {
         if (!areaDetails) { 
@@ -57,10 +65,31 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         }
     }
 
+    const addRouteToTopo = async (topoId: string) => {
+        const selectedRouteTopos = selectedRoute?.wall_topo_ids;
+        if(selectedRouteTopos?.includes(topoId)) {
+            alert('Route is already part of this Topo or doesnt exist')
+            return;
+        } else {
+            try {
+                const payload = {id: selectedRoute?.id, wall_topo_id: topoId }
+                const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/addTopo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                console.log(response);
+            } catch (error) {
+                console.error('error posting updated info')
+            }
+        }
+    }
+
     return (
         <div className="flex flex-col items-baseline gap-4 p-4">
-            <CreateRouteModal sessionToken={sessionToken} isVisible={isModalVisible} setIsVisible={setIsModalVisible} />
-            <button className="StandardButton" onClick={()=>toggleModal()}>Add Route</button>
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
@@ -71,8 +100,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                 })}
             </select>
             {areaDetails && crags && crags.length > 1  && (
-                <>
-                    <h3>Select Crag within {areaDetails.name}</h3>
+                <>  
+                    <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
+                        <h3>Select Crag within {areaDetails.name}</h3>
+                        {sessionToken && <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name}/>}
+                    </div>
+                    
                     <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange} value={selectedCrag}>
                         {crags.map((crag) => {
                             const cragName = crag.name;
@@ -97,7 +130,23 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                 const url = `${src}${topo.extracted_filename}?width=${maxWidth}&quality=75&format=webp`;
             return (
                 <div key={topo.name} className="flex flex-col max-w-vw">
-                    <h2 >{topo.description}</h2>
+                    <div className="flex flex-col  md:flex-row md:items-center">
+                        <h2 >{topo.description}</h2>
+                        { sessionToken && (
+                            <form className="flex items-center justify-around bg-gray-200 rounded-lg gap-2 mx-1 p-2" onSubmit={(e)=>{
+                                e.preventDefault();
+                                addRouteToTopo(topo.id)
+                            }}>
+                                <select value={selectedRoute?.id || " "} onChange={(e)=>setSelectedRoute(routes.find(route=>route.id === e.target.value))}>
+                                    <option value=" ">select route to add</option>
+                                    {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
+                                </select>
+                                <label htmlFor="topoNumber" className="text-xs"># in Topo</label>
+                                <input  className="bg-accent max-w-8" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(Number(e.target.value))}/>
+                                <Button type="submit">add/edit route</Button>
+                            </form>
+                        )}
+                    </div>
                     <img
                         src={url}
                         srcSet={srcSet}
