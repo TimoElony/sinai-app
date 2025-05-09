@@ -147,7 +147,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                     <div className="flex flex-col  md:flex-row md:items-center">
                         <h2 >{topo.description}</h2>
                         { sessionToken && (
-                            <form className="flex items-center justify-around bg-gray-200 rounded-lg gap-2 mx-1 p-2" onSubmit={(e)=>{
+                            <form className="flex flex-col md:flex-row md:items-center bg-gray-200 rounded-lg gap-2 mx-1 p-2" onSubmit={(e)=>{
                                 e.preventDefault();
                                 addRouteToTopo(topo.id)
                             }}>
@@ -155,8 +155,9 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                                     <option value=" ">select route to add</option>
                                     {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
                                 </select>
-                                <label htmlFor="topoNumber" className="text-xs"># in Topo</label>
-                                <input  className="bg-accent max-w-8" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
+                                <label htmlFor="topoNumber" className="text-xs">
+                                <input  className="bg-accent max-w-8 mx-1" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
+                                # in Topo</label>
                                 <Button type="submit">add/edit route</Button>
                             </form>
                         )}
