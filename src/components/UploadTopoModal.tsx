@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { Textarea } from "./ui/textarea";
  
 const formSchema = z.object({
   title: z.string().min(2).max(20),
@@ -29,40 +30,19 @@ const formSchema = z.object({
   }),
 });
 
-type FormData = z.infer<typeof formSchema>;
-
   export default function UploadTopoModal({sessionToken, selectedCrag, selectedArea}:{sessionToken: string; selectedCrag: string; selectedArea: string}){
     
-    const { register , handleSubmit, formState:{ errors } }= useForm<FormData>({
+    const form= useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
         title: "unknown topo",
         description: "",
-        image: new File([], "no file"),
+        image: undefined,
       },
     });
 
-    const onSubmit = async (data: FormData) => {
-      const formData = new FormData();
-      formData.append("title", data.title);
-      formData.append("description", data.description);
-      formData.append("image", data.image);
-      formData.append("area", selectedArea);
-      formData.append("crag", selectedCrag);
-      try {
-        const response = await fetch('https://sinai-backend.onrender.com/topos/new', {
-          method: 'POST',
-          headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`,
-                },
-          body: formData,
-        });
-        const data = await response.json();
-        console.log("Topo added:", data);
-      } catch (error) {
-        console.error("Error adding topo:", error);
-      }
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+     console.log("Form submitted:", values);
     };
 
     return(
@@ -75,15 +55,56 @@ type FormData = z.infer<typeof formSchema>;
                 Upload a topo image for {selectedCrag} in {selectedArea}
             </DialogDescription>
             </DialogHeader>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                <input className="bg-gray-200"{...register("title")}/>
-                <p>{errors.title?.message}</p>
-                <input className="bg-gray-200"{...register("description")}/>
-                <p>{errors.description?.message}</p>
-                <input className="bg-gray-200"{...register("image")} type="file" accept="image/*" />
-                <p>{errors.image?.message}</p>
-                <input type="submit" value="Upload" className="bg-green-300" />
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" encType="multipart/form-data">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Description" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Image</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            field.onChange(e.target.files?.[0] ?? null);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="bg-green-300">Submit</Button>
               </form>
+            </Form>
         </DialogContent>
         </Dialog>
 
