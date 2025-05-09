@@ -9,7 +9,6 @@ import {
   import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -43,6 +42,17 @@ const formSchema = z.object({
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
      console.log("Form submitted:", values);
+     const response = await fetch(`https://sinai-backend.onrender.com/walltopos/${selectedArea}/${selectedCrag}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionToken}`,
+                },
+                body: JSON.stringify(values),
+            });
+          const data = await response.json();
+          console.log("Topo added:", data);
+          form.reset();
     };
 
     return(
