@@ -42,17 +42,40 @@ const formSchema = z.object({
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
      console.log("Form submitted:", values);
-     const response = await fetch(`https://sinai-backend.onrender.com/walltopos/${selectedArea}/${selectedCrag}`, {
+     const {title, description, image} = values;
+     const formData = new FormData();
+     formData.append("image", image);     
+     let imageName = "";
+     try {
+      const response = await fetch('/api', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`,
+        },
+        body: formData,
+      });
+      const data = await response.json();
+      imageName = data.fileName;
+      console.log("Image uploaded:", data);
+     } catch (error) {
+      console.error("Error uploading image:");
+     }
+     try {
+      const response = await fetch(`https://sinai-backend.onrender.com/walltopos/${selectedArea}/${selectedCrag}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${sessionToken}`,
                 },
-                body: JSON.stringify(values),
+                body: JSON.stringify({title: title, description: description, name: imageName}),
             });
           const data = await response.json();
           console.log("Topo added:", data);
           form.reset();
+     } catch (error) {
+      console.error("Error adding topo to database:");
+     }
+     
     };
 
     return(

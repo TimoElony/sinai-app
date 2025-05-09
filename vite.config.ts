@@ -5,6 +5,20 @@ import path from "path"
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://curly-king-5594.timo-elony.workers.dev',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false,
+        headers: {
+          // Ensure headers are passed through
+          Host: 'curly-king-5594.timo-elony.workers.dev'
+        }
+      }
+    }
+  },
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
