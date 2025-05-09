@@ -56,7 +56,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         }
     }
 
-    const addRouteToTopo = async (topoId: string) => {
+    const addRouteToTopo = async (topoId: string, add: boolean) => {
         // topo numbers are mapped to the array of linked topos, if the route is already part then it will be updated, otherwise kept previous value
         // if numbers were missing in the db they will be added as 0
         // if the topo is new to the route then the given number and the id of the topo will be appended
@@ -71,7 +71,13 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         ));
 
         if(index && index != -1) {
-            const payload = {id: selectedRoute.id, wall_topo_numbers: wall_topo_numbers};
+            const payload = {id: selectedRoute.id, wall_topo_ids: selectedRoute.wall_topo_ids, wall_topo_numbers: wall_topo_numbers};
+            if(!add) {
+                const wall_topo_ids_new = selectedRoute.wall_topo_ids.filter((_,i)=>i!==index);
+                payload.wall_topo_ids = wall_topo_ids_new;
+                payload.wall_topo_numbers = wall_topo_numbers.filter((_,i)=>i!==index);
+                console.log('removing route from topo');
+            }
             const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
                 method: 'PUT',
                 headers: {
@@ -104,7 +110,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
 
     return (
         <div className="flex flex-col items-baseline gap-4 p-4">
-            <Button onClick={()=>fetchRoutesAndTopos(areaDetails?.name || "", selectedCrag)}>Refresh</Button>
+            {sessionToken && <Button onClick={()=>fetchRoutesAndTopos(areaDetails?.name || "", selectedCrag)}>Refresh</Button>}
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
@@ -159,6 +165,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                                 <input  className="bg-accent max-w-8 mx-1" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
                                 # in Topo</label>
                                 <Button type="submit">add/edit route</Button>
+                                <Button onClick={()=>addRouteToTopo(topo.id, false)}>remove</Button>
                             </form>
                         )}
                     </div>
