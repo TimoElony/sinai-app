@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, Crag, WallTopo } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+import UploadTopoModal from "./UploadTopoModal";
 
 
 
@@ -148,7 +150,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                                 );
                             })}
                         </select>
-                        {sessionToken && <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name}/>}
+                        {sessionToken && 
+                        <div>
+                            <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name}/>
+                            <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name}/>
+                        </div>
+                        }
                     </div>
                 </>
             )}
