@@ -56,7 +56,28 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         }
     }
 
-    const addRouteToTopo = async (topoId: string, add: boolean) => {
+    const removeRouteFromTopo = async (topoId: string) => {
+        if(!selectedRoute){
+            return;
+        }
+        // remove the route from the topo, even if it is in there multiple times
+        const wall_topo_ids_new = selectedRoute.wall_topo_ids.filter((tid)=>tid !== topoId);
+        const wall_topo_numbers_new = selectedRoute.wall_topo_numbers.filter((_,i)=>selectedRoute.wall_topo_ids[i] !== topoId);
+        
+        const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
+        console.log('payload', payload);
+        const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionToken}`,
+            },
+            body: JSON.stringify(payload),
+        });
+        console.log(response);
+    }
+
+    const addRouteToTopo = async (topoId: string) => {
         // topo numbers are mapped to the array of linked topos, if the route is already part then it will be updated, otherwise kept previous value
         // if numbers were missing in the db they will be added as 0
         // if the topo is new to the route then the given number and the id of the topo will be appended
@@ -64,20 +85,15 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
             return;
         }
         const index = selectedRoute.wall_topo_ids.indexOf(topoId);
+        console.log('add route called: index of topo in route', index);
         const wall_topo_numbers = selectedRoute.wall_topo_ids.map((_,i)=> (
             i===index 
                 ? formTopoNumber
                 : (selectedRoute.wall_topo_numbers[i] || 0)
         ));
 
-        if(index && index != -1) {
+        if(index >= 0 && index != -1) {
             const payload = {id: selectedRoute.id, wall_topo_ids: selectedRoute.wall_topo_ids, wall_topo_numbers: wall_topo_numbers};
-            if(!add) {
-                const wall_topo_ids_new = selectedRoute.wall_topo_ids.filter((_,i)=>i!==index);
-                payload.wall_topo_ids = wall_topo_ids_new;
-                payload.wall_topo_numbers = wall_topo_numbers.filter((_,i)=>i!==index);
-                console.log('removing route from topo');
-            }
             const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
                 method: 'PUT',
                 headers: {
@@ -153,10 +169,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                     <div className="flex flex-col  md:flex-row md:items-center">
                         <h2 >{topo.description}</h2>
                         { sessionToken && (
-                            <form className="flex flex-col md:flex-row md:items-center bg-gray-200 rounded-lg gap-2 mx-1 p-2" onSubmit={(e)=>{
-                                e.preventDefault();
-                                addRouteToTopo(topo.id)
-                            }}>
+                            <div className="flex flex-col md:flex-row md:items-center bg-gray-200 rounded-lg gap-2 mx-1 p-2">
                                 <select value={selectedRoute?.id || " "} onChange={(e)=>setSelectedRoute(routes.find(route=>route.id === e.target.value))}>
                                     <option value=" ">select route to add</option>
                                     {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
@@ -164,9 +177,11 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                                 <label htmlFor="topoNumber" className="text-xs">
                                 <input  className="bg-accent max-w-8 mx-1" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
                                 # in Topo</label>
-                                <Button type="submit">add/edit route</Button>
-                                <Button onClick={()=>addRouteToTopo(topo.id, false)}>remove</Button>
-                            </form>
+                                <div className="flex flex-row gap-2">
+                                    <Button onClick={()=>addRouteToTopo(topo.id)}>add/edit route</Button>
+                                    <Button className="bg-red-600" onClick={()=>removeRouteFromTopo(topo.id)}>remove</Button>
+                                </div>
+                            </div>
                         )}
                     </div>
                     <img
@@ -191,7 +206,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                     {routes.filter((route)=>(route.wall_topo_ids.includes(topo.id))).sort((a, b) => a.wall_topo_numbers[a.wall_topo_ids.indexOf(topo.id)] - b.wall_topo_numbers[b.wall_topo_ids.indexOf(topo.id)]).map((route) => {
                         return (
                             <tr key={route.id} className="hover:bg-gray-200">
-                                <td>{route.wall_topo_numbers[0]}<span className="text-xs opacity-30">{route.wall_topo_ids.indexOf(topo.id)}</span></td>
+                                <td>{route.wall_topo_numbers[route.wall_topo_ids.indexOf(topo.id)] || "n.n."}<span className="text-xs opacity-30">{route.wall_topo_ids.indexOf(topo.id)}</span></td>
                                 <td className="font-semibold">{route.name}</td>
                                 <td>{route.grade_best_guess}</td>
                                 <td>{route.length}m</td>
