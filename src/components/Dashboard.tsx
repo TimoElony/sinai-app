@@ -4,12 +4,18 @@ import ClimbingRoutes from "./ClimbingRoutes.tsx";
 import { ClimbingArea, AreaDetails} from "../types/types.ts";
 import MapView from "./MapView.tsx";
 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+
 
 
 
 export default function Dashboard({sessionToken}: {sessionToken: string}) {
   const [loading, setLoading] = useState(false);
-  const [view, setView] = useState('none');
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
   const [areaDetails, setAreaDetails] = useState<AreaDetails>();
 
@@ -42,7 +48,6 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     }
   }
 
-
   const areaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = e.target.value;
     if (selectedValue === 'none') {
@@ -72,43 +77,26 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     }
   };
 
-  const clickHandler = (selection: string) => {
-    setView(selection);
-  }
-
     return (
-      <div className="grid grid-cols-8 gap-4 rounded-xl mx-2">
-
-        <div className="col-span-8 md:col-span-6 md:col-start-2">
-          <h1>Online Routes Database</h1>
-          <div className="flex flex-wrap gap-4">
-            <button className="StandardButton" onClick={() => clickHandler('areas')}>
-              <h2>Climbing Areas</h2>
-              <p>Browse all areas</p>
-            </button>
-            <button className="StandardButton" onClick={() => clickHandler('map')}>
-              <h2>Map</h2>
-              <p>Check via map</p>
-            </button>
-            <button className="StandardButton" onClick={() => clickHandler('routes')}>
-              <h2>Routes</h2>
-              <p>Search routes directly</p>
-            </button>
-          </div>
-          <div className="max-w-3xl my-2">
-            {view === 'areas' && (
-              <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
-              )}
-            {view === 'routes' && (
-              <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags} sessionToken={sessionToken}/>
-            )}
-            {view === 'map' && (
-              <MapView />
-            )}
-          </div>
-          {loading &&
-          <h2>Loading areas...</h2>}
-        </div>
-      </div>
+      <>
+        <Tabs defaultValue="areas" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="areas" className="w-[100%]">Areas</TabsTrigger>
+            <TabsTrigger value="routes" className="w-[100%]">Routes</TabsTrigger>
+            <TabsTrigger value="map" className="w-[100%]">Map</TabsTrigger>
+          </TabsList>
+          <TabsContent value="areas">
+            <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
+          </TabsContent>
+          <TabsContent value="routes">
+            <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags} sessionToken={sessionToken}/>
+          </TabsContent>
+          <TabsContent value="map">
+            <MapView />
+          </TabsContent>
+        </Tabs>
+        {loading &&
+        <h2>Loading areas...</h2>}
+      </>
     );
 }
