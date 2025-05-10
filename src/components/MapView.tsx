@@ -63,6 +63,7 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler }: {
                         coordinates = geometry.coordinates as [number, number];
                     }
                     const description = e.features?.[0]?.properties?.description;
+                    const climbingAreaName = e.features?.[0]?.properties?.climbing_area_name;
 
                     if (coordinates) {
                         const popup = new mapboxgl.Popup()
@@ -78,8 +79,9 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler }: {
                             .addTo(mapInstanceRef.current!);
 
                         // Add event listener to the button inside the popup
-                        popup?.getElement()?.querySelector('#navigate-button')?.addEventListener('click', () => {
-                            changeHandler(e.features?.[0]?.properties?.climbing_area_name || 'none');
+                        popup?.getElement()?.querySelector('#navigate-button')?.addEventListener('click',() => {
+                            console.log('Button clicked', climbingAreaName);
+                            changeHandler(climbingAreaName || 'none');
                             onValueChange('routes');
                         });
                     }

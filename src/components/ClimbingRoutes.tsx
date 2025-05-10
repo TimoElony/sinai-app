@@ -19,12 +19,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         if (!areaDetails) { 
             return;
         }  else if (areaDetails.crags.length <= 1) {
-            console.log("No crags available for this area");
-            fetchRoutesAndTopos(areaDetails.name, 'singlecrag');
+            console.log("Only one crag in this area");
+            fetchRoutesAndTopos(areaDetails.name, areaDetails.name);
             setCrag(areaDetails.name)
         } else {
             console.log("Fetching routes for the first crag");
-            fetchRoutesAndTopos(areaDetails.name, crags ? crags[0].name: ""); // Use the first crag name or an empty string
+            fetchRoutesAndTopos(areaDetails.name, crags ? crags[0].name : ""); // Use the first crag name or an empty string
             setCrag(crags ? crags[0].name: areaDetails.name);
         }
     }, [areaDetails]);

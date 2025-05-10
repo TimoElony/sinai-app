@@ -84,7 +84,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   const fetchTopoPoints = async () =>{
         try {
           const response = await fetch('https://sinai-backend.onrender.com/geodata/topos');
-          setTopopoints(await response.json());
+          const data = await response.json();
+          setTopopoints(data);
         } catch (error) {
           console.error("Error fetching topo points:", error);
         }
