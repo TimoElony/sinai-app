@@ -41,11 +41,14 @@ const formSchema = z.object({
     });
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-     console.log("Form submitted:", values);
+     // sending one request with the image to our cloudflare worker /api, proxied through vite for dev
+     // and one to the backend to add to the database. TODO implement rollback in case one of the 2 fails
      const {title, description, image} = values;
-     const formData = new FormData();
-     formData.append("image", image);     
      let imageName = "";
+
+     const formData = new FormData();
+     formData.append("image", image);
+
      try {
       const response = await fetch('/api', {
         method: 'POST',
@@ -60,22 +63,22 @@ const formSchema = z.object({
      } catch (error) {
       console.error("Error uploading image:");
      }
+
      try {
       const response = await fetch(`https://sinai-backend.onrender.com/walltopos/${selectedArea}/${selectedCrag}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`,
-                },
-                body: JSON.stringify({title: title, description: description, name: imageName}),
-            });
-          const data = await response.json();
-          console.log("Topo added:", data);
-          form.reset();
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({title: title, description: description, name: imageName}),
+      });
+      const data = await response.json();
+      console.log("Topo added:", data);
+      form.reset();
      } catch (error) {
       console.error("Error adding topo to database:");
      }
-     
     };
 
     return(
@@ -139,8 +142,6 @@ const formSchema = z.object({
               </form>
             </Form>
         </DialogContent>
-        </Dialog>
-
-            
+        </Dialog>       
     );
   }
