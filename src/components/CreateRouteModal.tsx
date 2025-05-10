@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { NewClimbingRoute } from "../types/types";
 import {
     Dialog,
     DialogContent,
@@ -8,48 +6,77 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "@/components/ui/dialog";
-  import { Button } from "@/components/ui/button";
-  
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+
+const formSchema = z.object({
+    name: z.string().min(2).max(20),
+    grade: z.string().min(2).max(20),
+    length: z.number().min(0).max(100),
+    bolts: z.number().min(0).max(100),
+    info: z.string().min(2).max(200),
+    area: z.string().min(2).max(20),
+    crag: z.string().min(2).max(20),
+    setters: z.string().min(2).max(20),
+});
+
 
 export default function CreateRouteModal({sessionToken, selectedCrag, selectedArea}:{sessionToken: string; selectedCrag: string; selectedArea: string}) {
     
-    const [newRoute, setNewRoute] = useState<NewClimbingRoute>({
-        name: "",
-        grade: "",
-        length: 0,
-        bolts: 0,
-        info: "",
-        area: selectedArea,
-        crag: selectedCrag,
-        setters: ""
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: "",
+            grade: "",
+            length: 0,
+            bolts: 0,
+            info: "",
+            area: selectedArea,
+            crag: selectedCrag,
+            setters: ""
+        },
     });
 
-     const addRoute = async (newRoute: NewClimbingRoute) => {
-            if (!sessionToken) {
-                console.error("Not logged in");
-                return;
-            } else if (newRoute.name === "") {
-                console.error('No route name added')
-                return;
-            }
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        console.log("Form submitted:", values);
+        const {name, grade, length, bolts, info, area, crag, setters} = values;
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("grade", grade);
+        formData.append("length", length.toString());
+        formData.append("bolts", bolts.toString());
+        formData.append("info", info);
+        formData.append("area", area);
+        formData.append("crag", crag);
+        formData.append("setters", setters);
 
-    
-            console.log("Adding route with session token:", sessionToken);
-            try {
-                const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/new', {
+        try {
+            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/new', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${sessionToken}`,
                     },
-                    body: JSON.stringify(newRoute),
+                    body: formData,
                 });
-                const data = await response.json();
-                console.log("Route added:", data);
-            } catch (error) {
-                console.error("Error adding route:", error);
-            }
-        };
+            const data = await response.json();
+            console.log("Route added:", data);
+        } catch (error) {
+            console.error("Error adding route:", error);
+        }
+    };
 
     return( 
         <Dialog>
@@ -58,24 +85,115 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                 <DialogHeader>
                 <DialogTitle>Create new route</DialogTitle>
                 </DialogHeader>
-                    <form className="flex flex-col" onSubmit={(e) => {
-                        e.preventDefault();
-                        addRoute(newRoute);
-                    }}>
-                        <label className="mb-2">Route Name</label>
-                        <input type="text" placeholder="Route Name" value={newRoute.name} onChange={(e) => setNewRoute({ ...newRoute, name: e.target.value })} className="border p-2 mb-4 w-full"/>
-                        <label className="mb-2">Route Grade</label>
-                        <input type="text" placeholder="Route Grade" value={newRoute.grade} onChange={(e) => setNewRoute({ ...newRoute, grade: e.target.value })} className="border p-2 mb-4 w-full"/>
-                        <label className="mb-2">Route Length</label>
-                        <input type="number" placeholder="Route Length" value={newRoute.length} onChange={(e) => setNewRoute({ ...newRoute, length: parseInt(e.target.value) })} className="border p-2 mb-4 w-full"/>
-                        <label className="mb-2">Route Bolts</label>
-                        <input type="number" placeholder="Route Bolts" value={newRoute.bolts} onChange={(e) => setNewRoute({ ...newRoute, bolts: parseInt(e.target.value) })} className="border p-2 mb-4 w-full"/>
-                        <label className="mb-2">Route Description</label>
-                        <textarea placeholder="Route Description" value={newRoute.info} onChange={(e) => setNewRoute({ ...newRoute, info: e.target.value })} className="border p-2 mb-4 w-full"></textarea>
-                        <label className="mb-2">Route Setters</label>
-                        <input type="text" placeholder="Setters" value={newRoute.setters} onChange={(e) => setNewRoute({...newRoute, setters: e.target.value})} className="border p-2 mb-4 w-full"/>
-                        <Button type="submit" className="px-2" >Add Route</Button>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Route Name</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Route Name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="grade"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Route Grade</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Route Grade" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="length"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Route Length</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Route Length" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="bolts"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Route Bolts</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Route Bolts" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="info"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Route Description</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Route Description" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="setters"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Route Setters</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Setters" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="area"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Area</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="crag"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Crag</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit">Add Route</Button>
                     </form>
+                </Form>
                 <DialogDescription>
                     click to submit this route permanently
                 </DialogDescription>

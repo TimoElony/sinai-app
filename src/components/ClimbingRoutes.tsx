@@ -58,10 +58,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
     }
 
     const removeRouteFromTopo = async (topoId: string) => {
+        // remove the route from the topo, even if it is in there multiple times then remove all
+        
         if(!selectedRoute){
             return;
         }
-        // remove the route from the topo, even if it is in there multiple times
+        
         const wall_topo_ids_new = selectedRoute.wall_topo_ids.filter((tid)=>tid !== topoId);
         const wall_topo_numbers_new = selectedRoute.wall_topo_numbers.filter((_,i)=>selectedRoute.wall_topo_ids[i] !== topoId);
         
