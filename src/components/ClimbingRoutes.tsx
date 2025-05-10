@@ -40,7 +40,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         } catch (error) {
             console.error("Error fetching routes or topos:");
         } finally {
-            console.log("Fetching routes and topos completed");
+            console.log("Fetching routes and topos completed", topos[0], routes[0]);
         }
         
     };
@@ -164,7 +164,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                 </>
             )}
             <h1>Topos</h1>
-            {topos.map((topo)=> {
+            {!topos? <></> :
+            topos.map((topo)=> {
                 const maxWidth = 800;
                 const breakpoints = [400, 600, 800, 1200]; // Your preferred breakpoints
                 const src = "https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/"
