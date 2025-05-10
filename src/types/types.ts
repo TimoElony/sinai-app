@@ -1,3 +1,11 @@
+export type TopoPoints = {
+  description: string;
+  longitude: number;
+  latitude: number;
+  climbing_area_name: string;
+  climbing_sector: string;
+}
+
 export type ClimbingArea = {
   id: number;
   name: string;

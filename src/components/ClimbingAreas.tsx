@@ -1,12 +1,12 @@
 import { ClimbingArea, AreaDetails } from "../types/types.ts";
 import { GradeBarChart } from "./GradeBarChart.tsx";
 
-export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void} ) {
+export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (selectedValue: string) => void} ) {
 
     return (
         <div className="flex flex-col items-baseline gap-4 p-2 md:p-4">
             <h3>Select Area</h3>
-            <select className="bg-gray-200 rounded-lg p-2 shadow-md" value={areaDetails?.name || "none"} onChange={changeHandler}>
+            <select className="bg-gray-200 rounded-lg p-2 shadow-md" value={areaDetails?.name || "none"} onChange={(e)=>changeHandler(e.target.value)}>
                 <option value="none">all areas</option>
                 {areas && (areas.map((area) => {
                     return(

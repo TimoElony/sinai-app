@@ -7,7 +7,7 @@ import UploadTopoModal from "./UploadTopoModal";
 
 
 
-export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags, sessionToken}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (e: React.ChangeEvent<HTMLSelectElement>) => void; crags: Crag[] | undefined; sessionToken: string}) {
+export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags, sessionToken}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (selectedValue: string) => void; crags: Crag[] | undefined; sessionToken: string}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
     const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
     const [topos, setTopos] = useState<WallTopo[]>([]);
@@ -46,7 +46,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
     };
 
     const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        changeHandler(e);
+        changeHandler(e.target.value);
     };
 
     const handleCragChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
