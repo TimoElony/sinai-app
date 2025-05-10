@@ -64,7 +64,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         const responseData = await response.json();        
 
         setAreaDetails({...area, ...responseData});
-        console.log('areaDetails fetched and set')
+        console.log('areaDetails fetched and set, token is', import.meta.env.VITE_MAPBOX_TOKEN);
 
       }
     } catch (error) {
