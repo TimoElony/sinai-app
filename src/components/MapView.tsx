@@ -27,7 +27,7 @@ export default function MapView () {
 
     return(
         <>
-            <div ref={mapContainerRef} className="fixed inset-0 h-[100dvh] bg-gray-400"></div>
+            <div ref={mapContainerRef} className="fixed inset-0 h-[80dvh] bg-gray-400"></div>
         </>
     );
 }
