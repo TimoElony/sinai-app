@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import ClimbingAreas from "./ClimbingAreas.tsx";
 import ClimbingRoutes from "./ClimbingRoutes.tsx";
 import { ClimbingArea, AreaDetails} from "../types/types.ts";
+import MapView from "./MapView.tsx";
 
 
 
@@ -100,6 +101,9 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
               )}
             {view === 'routes' && (
               <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags} sessionToken={sessionToken}/>
+            )}
+            {view === 'map' && (
+              <MapView />
             )}
           </div>
           {loading &&
