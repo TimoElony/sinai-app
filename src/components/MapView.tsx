@@ -8,7 +8,6 @@ export default function MapView () {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
-    console.log(mapboxToken);
 
     useEffect(() => {
         mapboxgl.accessToken = mapboxToken;
