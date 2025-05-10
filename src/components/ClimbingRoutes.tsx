@@ -131,7 +131,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
     // Crag Selector and adding options when logged in
     // Topos repeater and adding. editing and removing options when logged in
     return (
-        <div className="flex flex-col items-baseline gap-4 p-4">
+        <div className="flex flex-col items-baseline gap-4 p-2 md:p-4">
             {sessionToken && <Button onClick={()=>fetchRoutesAndTopos(areaDetails?.name || "", selectedCrag)}>Refresh</Button>}
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
