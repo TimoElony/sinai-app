@@ -1,4 +1,3 @@
-import { ClimbingArea, AreaDetails } from "@/types/types";
 import { useRef, useEffect } from 'react'
 import mapboxgl from 'mapbox-gl'
 
