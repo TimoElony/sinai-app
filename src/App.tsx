@@ -11,7 +11,7 @@ function App() {
       <header>
         <Login loggedIn={!(sessionToken==='')} setSessionToken={setSessionToken}/>
       </header>
-      <main className='lg:w-3xl mx-auto'>
+      <main className='lg:w-3xl'>
         <Dashboard sessionToken={sessionToken}/>
       </main>
     </div>
