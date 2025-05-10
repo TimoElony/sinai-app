@@ -95,7 +95,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
               <p>Search routes directly</p>
             </button>
           </div>
-          <div className="max-w-3xl">
+          <div className="max-w-3xl my-2">
             {view === 'areas' && (
               <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
               )}
