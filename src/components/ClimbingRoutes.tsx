@@ -1,62 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { ClimbingArea, ClimbingRoute, AreaDetails, Crag, WallTopo } from "../types/types";
+import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
 
-export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags, sessionToken}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (selectedValue: string) => void; crags: Crag[] | undefined; sessionToken: string}) {
-    const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
-    const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
-    const [topos, setTopos] = useState<WallTopo[]>([]);
+export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos}: 
+    {   areas: ClimbingArea[];
+        selectedArea: string | undefined; 
+        areaDetails: AreaDetails | undefined; 
+        onAreaChange: (selectedValue: string) => void; 
+        sessionToken: string; 
+        selectedCrag: string | undefined; 
+        onCragChange: (selectedValue: string) => void;
+        routes: ClimbingRoute[]; 
+        topos: WallTopo[]}) {
+
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
 
 
     useEffect(() => {
-        if (!areaDetails) { 
+        if (!selectedArea || !areaDetails) {
+            console.log("No area selected or area details not available");
             return;
-        }  else if (areaDetails.crags.length <= 1) {
+        }
+        if (selectedArea === selectedCrag) {
             console.log("Only one crag in this area");
-            fetchRoutesAndTopos(areaDetails.name, areaDetails.name);
-            setCrag(areaDetails.name)
+            onCragChange(selectedArea)
         } else {
-            console.log("Fetching routes for the first crag");
-            fetchRoutesAndTopos(areaDetails.name, crags ? crags[0].name : ""); // Use the first crag name or an empty string
-            setCrag(crags ? crags[0].name: areaDetails.name);
+            console.log("Multiple crags in this area, selecting first one", areaDetails?.crags[0].name);
+            onCragChange(areaDetails?.crags[0].name);
         }
-    }, [areaDetails]);
-
-    const fetchRoutesAndTopos = async (areaName: string, cragName: string) => {
-        try {
-            if (!areaName || !cragName) {
-                console.error("Area name or crag name is not provided");
-                return;
-            }
-            const response = await fetch(`https://sinai-backend.onrender.com/climbingroutes/${areaName}/${cragName}`);
-            const routeData: ClimbingRoute[] = await response.json();
-            setRoutes(routeData);
-            const topoResponse = await fetch(`https://sinai-backend.onrender.com/walltopos/${areaName}/${cragName}`);
-            const topoData: WallTopo[] = await topoResponse.json();
-            setTopos(topoData);
-        } catch (error) {
-            console.error("Error fetching routes or topos:");
-        } finally {
-            console.log("Fetching routes and topos completed", topos[0], routes[0]);
-        }
-        
-    };
+    },[selectedArea]);
 
     const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        changeHandler(e.target.value);
+        onAreaChange(e.target.value);
     };
 
-    const handleCragChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedValue = e.target.value;
-        setCrag(selectedValue);
-        if (areaDetails) {
-            fetchRoutesAndTopos(areaDetails.name, selectedValue);
+    const refresh = () => {
+        setFormTopoNumber(0);
+        setSelectedRoute(undefined);
+        if(!selectedCrag){
+            console.log('no crag selected');
+            return;
         }
+        onCragChange(selectedCrag);
     }
+    
 
     const removeRouteFromTopo = async (topoId: string) => {
         // remove the route from the topo, even if it is in there multiple times then remove all
@@ -141,14 +131,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         }
     }
 
-    const refresh = () => {
-        setTopos([]);
-        setRoutes([]);
-        setFormTopoNumber(0);
-        setSelectedRoute(undefined);
-        fetchRoutesAndTopos(areaDetails?.name || "", selectedCrag);
-        
-    }
+    
     // Rendering below:
     // Area Selector
     // Crag Selector and adding options when logged in
@@ -165,18 +148,18 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                     );
                 })}
             </select>
-            {sessionToken && areaDetails &&
+            {sessionToken && selectedCrag && selectedArea &&
                 <div className="flex flex-col md:flex-row gap-2">
-                    <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name} refresh={refresh}/>
-                    <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name} refresh={refresh}/>
+                    <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={selectedArea} refresh={refresh}/>
+                    <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={selectedArea} refresh={refresh}/>
                 </div>
             }
-            {areaDetails && crags && crags.length > 1  && (
+            {areaDetails && areaDetails.crags && areaDetails.crags.length > 1  && (
                 <>    
                     <h3>Select Crag within {areaDetails.name}</h3>
                     <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
-                        <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={handleCragChange} value={selectedCrag}>
-                            {crags.map((crag) => {
+                        <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={(e)=>onCragChange(e.target.value)} value={selectedCrag}>
+                            {areaDetails.crags.map((crag) => {
                                 const cragName = crag.name;
                                 return(
                                     <option key={cragName} value={cragName}>{cragName}</option>

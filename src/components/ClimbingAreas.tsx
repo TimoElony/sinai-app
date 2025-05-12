@@ -1,14 +1,14 @@
-import { ClimbingArea, AreaDetails } from "../types/types.ts";
+import { ClimbingArea} from "../types/types.ts";
 import { GradeBarChart } from "./GradeBarChart.tsx";
 import { Button } from "./ui/button.tsx";
 
-export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (selectedValue: string) => void} ) {
+export default function  ClimbingAreas ( {areas, selectedArea, areaDetails, onAreaChange}: {areas: ClimbingArea[]; selectedArea: string | undefined; areaDetails: ClimbingArea | undefined; onAreaChange: (selectedValue: string) => void} ) {
 
     return (
         <div className="flex flex-col items-baseline gap-4 p-2 md:p-4">
             <h3>Select Area</h3>
             <div className="flex gap-2">
-                <select className="bg-gray-200 rounded-lg p-2 shadow-md" value={areaDetails?.name || "none"} onChange={(e)=>changeHandler(e.target.value)}>
+                <select className="bg-gray-200 rounded-lg p-2 shadow-md" value={selectedArea || "none"} onChange={(e)=>onAreaChange(e.target.value)}>
                     <option value="none">All areas</option>
                     {areas && (areas.map((area) => {
                         return(
@@ -16,7 +16,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                         );
                     }))}
                 </select>
-                <Button variant="outline" onClick={() => changeHandler("none")}>
+                <Button variant="outline" onClick={() => onAreaChange("none")}>
                     All areas
                 </Button>
             </div>
@@ -53,7 +53,7 @@ export default function  ClimbingAreas ( {areas, areaDetails, changeHandler}: {a
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {areas.map((area) => {
                         return (
-                            <div key={area.id} className="bg-gray-200 p-4 rounded-lg shadow-md [&_p]:overflow-ellipsis [&_p]:overflow-clip" onClick={() => changeHandler(area.name)}>
+                            <div key={area.id} className="bg-gray-200 p-4 rounded-lg shadow-md [&_p]:overflow-ellipsis [&_p]:overflow-clip" onClick={() => onAreaChange(area.name)}>
                                 <h3>{area.name}</h3>
                                 <p>Distance from Dahab: {area.access_from_dahab_minutes}</p>
                                 <p>Route Count: {area.route_count}</p>

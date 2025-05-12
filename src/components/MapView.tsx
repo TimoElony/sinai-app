@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { ClimbingArea, TopoPoints } from '@/types/types';
 import * as turf from '@turf/turf';
 
-export default function MapView ({ topoPoints, onValueChange, changeHandler, areas }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; changeHandler: (selectedValue: string) => void ; areas: ClimbingArea[] }) {
+export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[] }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -49,10 +49,14 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler, are
                 areas.map((area)=>{
                     const areaPoints = topoPoints.filter((point)=>point.climbing_area_name === area.name);
                     const areaCollection = turf.featureCollection(areaPoints.map((point)=>turf.point([point.longitude, point.latitude], { name: point.description })));
-                    
+                    if (areaCollection.features.length < 3) {
+                        areaCollection.features.push(turf.transformTranslate(areaCollection.features[0], 0.0001, 0));
+                        areaCollection.features.push(turf.transformTranslate(areaCollection.features[0], 0.0001, 90));
+                        areaCollection.features.push(turf.transformTranslate(areaCollection.features[0], 0.0001, 180));
+                    }
                     const convexHull = turf.convex(areaCollection);
                     const areaHull = convexHull 
-                        ? turf.buffer(convexHull, 5, { units: 'kilometers' }) 
+                        ? turf.buffer(convexHull, 4, { units: 'kilometers' }) 
                         : turf.buffer(turf.point([0, 0]), 5, { units: 'kilometers' });
 
                     mapInstanceRef.current?.addSource(`area-collection${area.name}`, {
@@ -117,7 +121,7 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler, are
                             .setLngLat(coordinates)
                             .setHTML(`
                                 <div>
-                                    <p><strong>${area.name}</strong>: ${description}</p>
+                                    <p><strong>${area.name}</strong>: ${description}, ${area.route_count} Routes</p>
                                     <button id="navigate-button" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Routes in this area</button>
                                 </div>
                             `)
@@ -128,7 +132,7 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler, are
                         // Add event listener to the button inside the popup
                         popup?.getElement()?.querySelector('#navigate-button')?.addEventListener('click',() => {
                             console.log('Button clicked', climbingAreaName);
-                            changeHandler(climbingAreaName || 'none');
+                            onAreaChange(climbingAreaName || 'none');
                             onValueChange('routes');
                         });
                     }
@@ -159,7 +163,7 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler, are
                         // Add event listener to the button inside the popup
                         popup?.getElement()?.querySelector('#navigate-button')?.addEventListener('click',() => {
                             console.log('Button clicked', climbingAreaName);
-                            changeHandler(climbingAreaName || 'none');
+                            onAreaChange(climbingAreaName || 'none');
                             onValueChange('routes');
                         });
                     }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ClimbingAreas from "./ClimbingAreas.tsx";
 import ClimbingRoutes from "./ClimbingRoutes.tsx";
-import { ClimbingArea, AreaDetails, TopoPoints} from "../types/types.ts";
+import { ClimbingArea, AreaDetails, TopoPoints, ClimbingRoute, WallTopo} from "../types/types.ts";
 import MapView from "./MapView.tsx";
 import { Progress } from "./ui/progress.tsx";
 
@@ -19,9 +19,13 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(13);
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
+  const [selectedArea, setSelectedArea] = useState<string | undefined>(undefined);
+  const [selectedCrag, setSelectedCrag] = useState<string | undefined>(undefined);
   const [areaDetails, setAreaDetails] = useState<AreaDetails>();
   const [topoPoints, setTopopoints] = useState<TopoPoints[]>([]);
   const [activeTab, setActiveTab] = useState<string>("areas");
+  const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
+  const [topos, setTopos] = useState<WallTopo[]>([]);
 
 
   useEffect ( () => {
@@ -40,52 +44,76 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     }
   },[]);
 
-  useEffect(() => {
-
-    if (areas) {
-      fetchDetails(areas[0]);
-    }
-  },[areas])
-
   const fetchAreas = async () => {
     try {
       const response = await fetch('https://sinai-backend.onrender.com/climbingareas');
       const data = await response.json();
       console.log(data);
       setAreas(data);
-
     } catch (error) {
       console.error("Error fetching areas:", error);
     }
   }
 
-  const areaChange = (selectedValue: string) => {
+  const handleAreaChange = async (selectedValue: string) => {
+    try {
+      if (selectedValue === 'none') {
+        setAreaDetails(undefined);
+        setSelectedArea(undefined);
+        setSelectedCrag(undefined);
+        setRoutes([]);
+        setTopos([]);
+        return;
+      } else {
+        await fetchDetails(selectedValue);
+      }
+      
+    } catch (error) {
+      console.error("Error changing area:", error);
+    }
     
-    if (selectedValue === 'none') {
-      setAreaDetails(undefined);
-      return;
-    }
-    const area = areas.find(area => area.name === selectedValue);
-    if (area) {
-        fetchDetails(area);
-    } else {
-        console.error("Area not found");
-    }
   }
 
-  const fetchDetails = async (area: ClimbingArea | undefined) => {
+  const fetchDetails = async (area: string | undefined) => {
     try {
       if(area) {
-        const response = await fetch(`https://sinai-backend.onrender.com/climbingareas/details/${area.name}`);
+        const response = await fetch(`https://sinai-backend.onrender.com/climbingareas/details/${area}`);
         const responseData = await response.json();        
 
-        setAreaDetails({...area, ...responseData});
+        setAreaDetails(responseData);
         console.log('areaDetails fetched and set');
+        if (responseData.crags.length <= 1 ) {
+          console.log('only one crag, setting selectedCrag, but without fetching');
+          setSelectedCrag(area);
+        } else {
+          console.log('multiple crags, setting selectedCrag to first one, but without fetching');
+          setSelectedCrag(responseData.crags[0].name); 
+        }
 
       }
     } catch (error) {
       console.error("Error fetching area details:", error);
     }
+  };
+
+  const fetchRoutesAndTopos = async (areaName: string, cragName: string) => {
+    try {
+        if (!areaName || !cragName) {
+            console.error("Area name or crag name is not provided");
+            return;
+        }
+        const response = await fetch(`https://sinai-backend.onrender.com/climbingroutes/${areaName}/${cragName}`);
+        const routeData: ClimbingRoute[] = await response.json();
+        setRoutes(routeData);
+        const topoResponse = await fetch(`https://sinai-backend.onrender.com/walltopos/${areaName}/${cragName}`);
+        const topoData: WallTopo[] = await topoResponse.json();
+        setTopos(topoData);
+    } catch (error) {
+        console.error("Error fetching routes or topos:");
+    } finally {
+        console.log("Fetching routes and topos completed", topos[0], routes[0]);
+    }
+          
   };
 
   const fetchTopoPoints = async () =>{
@@ -98,6 +126,19 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         }
   }
 
+  const handleCragChange = async (selectedValue: string) => {
+    try {
+      if (!selectedArea) {
+        throw new Error("Area not selected");
+      }
+      fetchRoutesAndTopos(selectedArea, selectedValue);
+    } catch (error) {
+      console.error("Error changing crag:", error);
+    }
+    
+  }
+
+
   return (
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -107,13 +148,23 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
           <TabsTrigger value="map" className="w-[100%]">Map</TabsTrigger>
         </TabsList>
         <TabsContent value="areas">
-          <ClimbingAreas areaDetails={areaDetails} changeHandler={areaChange} areas={areas} />
+          <ClimbingAreas areaDetails={areaDetails} onAreaChange={handleAreaChange} areas={areas} selectedArea={selectedArea}  />
         </TabsContent>
         <TabsContent value="routes">
-          <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags} sessionToken={sessionToken}/>
+          <ClimbingRoutes 
+            areaDetails={areaDetails} 
+            onAreaChange={handleAreaChange} 
+            areas={areas} 
+            sessionToken={sessionToken} 
+            selectedCrag={selectedCrag} 
+            onCragChange={handleCragChange}
+            routes={routes}
+            topos={topos}
+            selectedArea={selectedArea}
+          />
         </TabsContent>
         <TabsContent value="map">
-          <MapView topoPoints={topoPoints} onValueChange={setActiveTab} changeHandler={areaChange} areas={areas}/>
+          <MapView topoPoints={topoPoints} onValueChange={setActiveTab} onAreaChange={handleAreaChange} areas={areas}/>
         </TabsContent>
       </Tabs>
       {loading &&

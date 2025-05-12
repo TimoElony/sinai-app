@@ -13,8 +13,12 @@ export type ClimbingArea = {
   access: string;
   access_from_dahab_minutes: string;
   route_count: number;
-  crags: string[];
   color: string;
+  grade_distribution: {
+        grade_best_guess: string;
+        route_count: number;
+    }[];
+  crags: Crag[];
 }
 
 export type ClimbingRoute = {
@@ -44,11 +48,7 @@ export type Crag = {
 }
 
 export type AreaDetails = ClimbingArea & {
-    grade_distribution: {
-        grade_best_guess: string;
-        route_count: number;
-    }[];
-    crags: Crag[];
+    
 }
 
 export type WallTopo = {
