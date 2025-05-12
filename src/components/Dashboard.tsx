@@ -21,7 +21,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
   const [selectedArea, setSelectedArea] = useState<string | undefined>(undefined);
   const [selectedCrag, setSelectedCrag] = useState<string | undefined>(undefined);
-  const [areaDetails, setAreaDetails] = useState<AreaDetails>();
+  const [areaDetails, setAreaDetails] = useState<AreaDetails | undefined>(undefined);
   const [topoPoints, setTopopoints] = useState<TopoPoints[]>([]);
   const [activeTab, setActiveTab] = useState<string>("areas");
   const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
@@ -75,13 +75,14 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   }
 
   const fetchDetails = async (area: string | undefined) => {
+    const areaData = areas.find((areaObj) => areaObj.name === area);
     try {
-      if(area) {
+      if(areaData) {
         const response = await fetch(`https://sinai-backend.onrender.com/climbingareas/details/${area}`);
         const responseData = await response.json();        
 
-        setAreaDetails(responseData);
-        console.log('areaDetails fetched and set');
+        setAreaDetails({...areaData, ...responseData});
+        console.log('areaDetails fetched and set', responseData);
         if (responseData.crags.length <= 1 ) {
           console.log('only one crag, setting selectedCrag, but without fetching');
           setSelectedCrag(area);
