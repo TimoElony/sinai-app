@@ -3,6 +3,7 @@ import ClimbingAreas from "./ClimbingAreas.tsx";
 import ClimbingRoutes from "./ClimbingRoutes.tsx";
 import { ClimbingArea, AreaDetails, TopoPoints} from "../types/types.ts";
 import MapView from "./MapView.tsx";
+import { Progress } from "./ui/progress.tsx";
 
 import {
   Tabs,
@@ -16,6 +17,7 @@ import {
 
 export default function Dashboard({sessionToken}: {sessionToken: string}) {
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(13);
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
   const [areaDetails, setAreaDetails] = useState<AreaDetails>();
   const [topoPoints, setTopopoints] = useState<TopoPoints[]>([]);
@@ -27,9 +29,14 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     setLoading(true);
     try{
       fetchAreas();
+      setProgress(33);
       fetchTopoPoints();
+      setProgress(80);
     } catch(err) {
       console.error('error fetching areas or points');
+    } finally {
+      setLoading(false);
+      setProgress(13);
     }
   },[]);
 
@@ -46,7 +53,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       const data = await response.json();
       console.log(data);
       setAreas(data);
-      setLoading(false);
+
     } catch (error) {
       console.error("Error fetching areas:", error);
     }
@@ -94,7 +101,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   return (
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 min-h-15">
           <TabsTrigger value="areas" className="w-[100%]">Areas</TabsTrigger>
           <TabsTrigger value="routes" className="w-[100%]">Routes</TabsTrigger>
           <TabsTrigger value="map" className="w-[100%]">Map</TabsTrigger>
@@ -110,7 +117,10 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         </TabsContent>
       </Tabs>
       {loading &&
-      <h2>Loading areas...</h2>}
+        <div className="flex items-center justify-center">
+          <Progress value={progress} className="w-56" />
+          <h2>Booting up after inactivity...</h2>
+        </div>}
     </>
   );
 }

@@ -33,7 +33,7 @@ const formSchema = z.object({
 });
 
 
-export default function CreateRouteModal({sessionToken, selectedCrag, selectedArea}:{sessionToken: string; selectedCrag: string; selectedArea: string}) {
+export default function CreateRouteModal({sessionToken, selectedCrag, selectedArea, refresh}:{sessionToken: string; selectedCrag: string; selectedArea: string, refresh: () => void}) {
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -75,6 +75,8 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
             console.log("Route added:", data);
         } catch (error) {
             console.error("Error adding route:", error);
+        } finally {
+            refresh();
         }
     };
 

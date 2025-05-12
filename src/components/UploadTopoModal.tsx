@@ -29,7 +29,7 @@ const formSchema = z.object({
   }),
 });
 
-  export default function UploadTopoModal({sessionToken, selectedCrag, selectedArea}:{sessionToken: string; selectedCrag: string; selectedArea: string}){
+  export default function UploadTopoModal({sessionToken, selectedCrag, selectedArea, refresh}:{sessionToken: string; selectedCrag: string; selectedArea: string; refresh: () => void}) {
     
     const form= useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
@@ -75,9 +75,11 @@ const formSchema = z.object({
       });
       const data = await response.json();
       console.log("Topo added:", data);
-      form.reset();
      } catch (error) {
       console.error("Error adding topo to database:");
+     } finally {
+      form.reset();
+      refresh();
      }
     };
 

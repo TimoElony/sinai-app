@@ -4,9 +4,6 @@ import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
 
-
-
-
 export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, crags, sessionToken}: {areas: ClimbingArea[]; areaDetails: AreaDetails | undefined; changeHandler: (selectedValue: string) => void; crags: Crag[] | undefined; sessionToken: string}) {
     const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
     const [selectedCrag, setCrag] = useState<string>(crags?.[0]?.name || ""); // Initialize with the first crag name or an empty string
@@ -31,6 +28,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
 
     const fetchRoutesAndTopos = async (areaName: string, cragName: string) => {
         try {
+            if (!areaName || !cragName) {
+                console.error("Area name or crag name is not provided");
+                return;
+            }
             const response = await fetch(`https://sinai-backend.onrender.com/climbingroutes/${areaName}/${cragName}`);
             const routeData: ClimbingRoute[] = await response.json();
             setRoutes(routeData);
@@ -63,21 +64,26 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         if(!selectedRoute){
             return;
         }
-        
-        const wall_topo_ids_new = selectedRoute.wall_topo_ids.filter((tid)=>tid !== topoId);
-        const wall_topo_numbers_new = selectedRoute.wall_topo_numbers.filter((_,i)=>selectedRoute.wall_topo_ids[i] !== topoId);
-        
-        const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
-        console.log('payload', payload);
-        const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionToken}`,
-            },
-            body: JSON.stringify(payload),
-        });
-        console.log(response);
+        try {
+            const wall_topo_ids_new = selectedRoute.wall_topo_ids.filter((tid)=>tid !== topoId);
+            const wall_topo_numbers_new = selectedRoute.wall_topo_numbers.filter((_,i)=>selectedRoute.wall_topo_ids[i] !== topoId);
+            
+            const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
+            console.log('payload', payload);
+            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionToken}`,
+                },
+                body: JSON.stringify(payload),
+            });
+            console.log(response);  
+        } catch (error) {
+            console.error('error removing route from topo', error);
+        } finally {
+            refresh();
+        }
     }
 
     const addRouteToTopo = async (topoId: string) => {
@@ -96,6 +102,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
         ));
 
         if(index >= 0 && index != -1) {
+            try {
             const payload = {id: selectedRoute.id, wall_topo_ids: selectedRoute.wall_topo_ids, wall_topo_numbers: wall_topo_numbers};
             const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
                 method: 'PUT',
@@ -106,6 +113,11 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                 body: JSON.stringify(payload),
             });
             console.log(response);
+            } catch (error) {
+                console.error('error updating topo number', error);
+            } finally {
+                refresh();
+            }
         } else {
             console.log('route does not exist on this topo yet')
             try {
@@ -123,8 +135,19 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                 console.log(response);
             } catch (error) {
                 console.error('error posting add route to topo')
+            } finally {
+                refresh();
             }
         }
+    }
+
+    const refresh = () => {
+        setTopos([]);
+        setRoutes([]);
+        setFormTopoNumber(0);
+        setSelectedRoute(undefined);
+        fetchRoutesAndTopos(areaDetails?.name || "", selectedCrag);
+        
     }
     // Rendering below:
     // Area Selector
@@ -132,7 +155,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
     // Topos repeater and adding. editing and removing options when logged in
     return (
         <div className="flex flex-col items-baseline gap-4 p-2 md:p-4">
-            {sessionToken && <Button onClick={()=>fetchRoutesAndTopos(areaDetails?.name || "", selectedCrag)}>Refresh</Button>}
+            {sessionToken && <Button onClick={()=>refresh()}>Refresh</Button>}
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
@@ -142,6 +165,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                     );
                 })}
             </select>
+            {sessionToken && areaDetails &&
+                <div className="flex flex-col md:flex-row gap-2">
+                    <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name} refresh={refresh}/>
+                    <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name} refresh={refresh}/>
+                </div>
+            }
             {areaDetails && crags && crags.length > 1  && (
                 <>    
                     <h3>Select Crag within {areaDetails.name}</h3>
@@ -154,12 +183,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, changeHandler, cra
                                 );
                             })}
                         </select>
-                        {sessionToken && 
-                        <div>
-                            <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name}/>
-                            <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={areaDetails.name}/>
-                        </div>
-                        }
                     </div>
                 </>
             )}
