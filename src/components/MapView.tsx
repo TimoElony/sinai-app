@@ -4,7 +4,6 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ClimbingArea, TopoPoints } from '@/types/types';
 import * as turf from '@turf/turf';
-import { map } from 'zod';
 
 export default function MapView ({ topoPoints, onValueChange, changeHandler, areas }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; changeHandler: (selectedValue: string) => void ; areas: ClimbingArea[] }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
