@@ -2,9 +2,11 @@ import { useRef, useEffect } from 'react'
 import mapboxgl from 'mapbox-gl'
 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { TopoPoints } from '@/types/types';
+import { ClimbingArea, TopoPoints } from '@/types/types';
+import * as turf from '@turf/turf';
+import { map } from 'zod';
 
-export default function MapView ({ topoPoints, onValueChange, changeHandler }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; changeHandler: (selectedValue: string) => void }) {
+export default function MapView ({ topoPoints, onValueChange, changeHandler, areas }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; changeHandler: (selectedValue: string) => void ; areas: ClimbingArea[] }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -44,33 +46,80 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler }: {
                         })),
                     },
                 });
+                
+                areas.map((area)=>{
+                    const areaPoints = topoPoints.filter((point)=>point.climbing_area_name === area.name);
+                    const areaCollection = turf.featureCollection(areaPoints.map((point)=>turf.point([point.longitude, point.latitude], { name: point.description })));
+                    
+                    const convexHull = turf.convex(areaCollection);
+                    const areaHull = convexHull 
+                        ? turf.buffer(convexHull, 5, { units: 'kilometers' }) 
+                        : turf.buffer(turf.point([0, 0]), 5, { units: 'kilometers' });
 
-                mapInstanceRef.current.addLayer({
-                    id: 'topo-points',
+                    mapInstanceRef.current?.addSource(`area-collection${area.name}`, {
+                    type: 'geojson',
+                    data: areaCollection
+                    });
+
+                    if (areaHull) {
+                        mapInstanceRef.current?.addSource(`area-polygon${area.name}`, {
+                            type: 'geojson',
+                            data: areaHull
+                        });
+                    }
+
+                    mapInstanceRef.current?.addLayer({
+                        id: `area-polygon${area.name}`,
+                        type: 'fill',
+                        source: `area-polygon${area.name}`,
+                        layout: {},
+                        paint: {
+                            'fill-color': area.color,
+                            'fill-opacity': 0.3
+                        },
+                        minzoom: 8,
+                        maxzoom: 12,
+                    });
+
+                    mapInstanceRef.current?.addLayer({
+                        id: `area-border${area.name}`,
+                        type: 'line',
+                        source: `area-polygon${area.name}`,
+                        layout: {},
+                        paint: {
+                            'line-color': area.color,
+                            'line-width': 2,
+                            'fill-opacity': 0.8,
+                        }
+                    });
+
+                    mapInstanceRef.current?.addLayer({
+                    id: `area-topos${area.name}`,
                     type: 'circle',
-                    source: 'topo-points',
+                    source: `area-collection${area.name}`,
                     paint: {
-                        'circle-radius': 6,
-                        'circle-color': '#FF0000',
-                        'circle-opacity': 0.8,
+                        'circle-radius': 8,
+                        'circle-color': area.color,
+                        'circle-opacity': 0.6,
                     },
+                    minzoom: 10,
                 });
 
-                mapInstanceRef.current.on('click', 'topo-points', (e) => {
+                mapInstanceRef.current?.on('click', `area-polygon${area.name}`, (e) => {
                     const geometry = e.features?.[0].geometry;
                     let coordinates: [number, number] | undefined;
-                    if (geometry?.type === 'Point') {
-                        coordinates = geometry.coordinates as [number, number];
+                    if (geometry?.type === 'Polygon') {
+                        coordinates = geometry.coordinates[0][0] as [number, number];
                     }
-                    const description = e.features?.[0]?.properties?.description;
-                    const climbingAreaName = e.features?.[0]?.properties?.climbing_area_name;
+                    const description = area.access_from_dahab_minutes;
+                    const climbingAreaName = area.name;
 
                     if (coordinates) {
                         const popup = new mapboxgl.Popup()
                             .setLngLat(coordinates)
                             .setHTML(`
-                                <div class="bg-white text-black p-2 rounded">
-                                    <p>${description}</p>
+                                <div>
+                                    <p><strong>${area.name}</strong>: ${description}</p>
                                     <button id="navigate-button" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Routes in this area</button>
                                 </div>
                             `)
@@ -86,6 +135,45 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler }: {
                         });
                     }
                 });
+
+                mapInstanceRef.current?.on('click', `area-topos${area.name}`, (e) => {
+                    const geometry = e.features?.[0].geometry;
+                    let coordinates: [number, number] | undefined;
+                    if (geometry?.type === 'Point') {
+                        coordinates = geometry.coordinates as [number, number];
+                    }
+                    const description = e.features?.[0].properties?.name;
+                    const climbingAreaName = area.name;
+
+                    if (coordinates) {
+                        const popup = new mapboxgl.Popup()
+                            .setLngLat(coordinates)
+                            .setHTML(`
+                                <div>
+                                    <p><strong>${area.name}</strong>: Topo: ${description}</p>
+                                    <button id="navigate-button" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Routes in this area</button>
+                                </div>
+                            `)
+                            .setMaxWidth('300px')
+                            .setOffset(10)
+                            .addTo(mapInstanceRef.current!);
+
+                        // Add event listener to the button inside the popup
+                        popup?.getElement()?.querySelector('#navigate-button')?.addEventListener('click',() => {
+                            console.log('Button clicked', climbingAreaName);
+                            changeHandler(climbingAreaName || 'none');
+                            onValueChange('routes');
+                        });
+                    }
+                });
+                });
+
+    
+                
+
+                
+
+                
 
 
 

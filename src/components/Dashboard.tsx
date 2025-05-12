@@ -113,7 +113,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
           <ClimbingRoutes areaDetails={areaDetails} changeHandler={areaChange} areas={areas} crags={areaDetails?.crags} sessionToken={sessionToken}/>
         </TabsContent>
         <TabsContent value="map">
-          <MapView topoPoints={topoPoints} onValueChange={setActiveTab} changeHandler={areaChange}/>
+          <MapView topoPoints={topoPoints} onValueChange={setActiveTab} changeHandler={areaChange} areas={areas}/>
         </TabsContent>
       </Tabs>
       {loading &&

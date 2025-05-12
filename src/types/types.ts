@@ -14,6 +14,7 @@ export type ClimbingArea = {
   access_from_dahab_minutes: string;
   route_count: number;
   crags: string[];
+  color: string;
 }
 
 export type ClimbingRoute = {
