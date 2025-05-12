@@ -50,9 +50,11 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                     const areaPoints = topoPoints.filter((point)=>point.climbing_area_name === area.name);
                     const areaCollection = turf.featureCollection(areaPoints.map((point)=>turf.point([point.longitude, point.latitude], { name: point.description })));
                     if (areaCollection.features.length < 3) {
-                        areaCollection.features.push(turf.transformTranslate(areaCollection.features[0], 0.0001, 0));
-                        areaCollection.features.push(turf.transformTranslate(areaCollection.features[0], 0.0001, 90));
-                        areaCollection.features.push(turf.transformTranslate(areaCollection.features[0], 0.0001, 180));
+                        const x = areaCollection.features[0]?.geometry.coordinates[0];
+                        const y = areaCollection.features[0]?.geometry.coordinates[1];
+                        areaCollection.features.push(turf.point([x + 0.0001, y]));
+                        areaCollection.features.push(turf.point([x + 0.0001, y + 0.0001]));
+                        areaCollection.features.push(turf.point([x, y + 0.0001]));
                     }
                     const convexHull = turf.convex(areaCollection);
                     const areaHull = convexHull 
@@ -91,7 +93,6 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                         paint: {
                             'line-color': area.color,
                             'line-width': 2,
-                            'fill-opacity': 0.8,
                         }
                     });
 
