@@ -76,7 +76,6 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler, are
                             'fill-color': area.color,
                             'fill-opacity': 0.3
                         },
-                        minzoom: 8,
                         maxzoom: 12,
                     });
 
@@ -101,7 +100,7 @@ export default function MapView ({ topoPoints, onValueChange, changeHandler, are
                         'circle-color': area.color,
                         'circle-opacity': 0.6,
                     },
-                    minzoom: 10,
+                    minzoom: 12,
                 });
 
                 mapInstanceRef.current?.on('click', `area-polygon${area.name}`, (e) => {
