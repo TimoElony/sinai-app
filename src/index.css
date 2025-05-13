@@ -20,7 +20,7 @@ h2 {
 }
 
 th, td {
-  @apply p-2;
+  @apply p-3;
 }
 
 @theme inline {

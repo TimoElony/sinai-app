@@ -31,14 +31,14 @@ export default function  ClimbingAreas ( {areas, selectedArea, areaDetails, onAr
                         <table className="[&_td]:overflow-hidden [&_td]:text-ellipsis bg-gray-300 rounded-sm shadow-md">
                             <thead>
                                 <tr>
-                                    <th className="w-2/3">Access</th>
-                                    <th className="w-1/3">Distance from Dahab</th>
+                                    <th className="w-2/3 text-start">Access</th>
+                                    <th className="w-1/3 text-end">Distance from Dahab</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>{areaDetails.access.length > 120 ? areaDetails.access.substring(0,120) + "..." : areaDetails.access}</td>
-                                    <td>{areaDetails.access_from_dahab_minutes}</td>
+                                    <td className="text-end">{areaDetails.access_from_dahab_minutes}</td>
                                 </tr>
                             </tbody>
                         </table>

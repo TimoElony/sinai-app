@@ -24,6 +24,8 @@ import { Textarea } from "./ui/textarea";
 const formSchema = z.object({
   title: z.string().min(2).max(20),
   description: z.string().min(2).max(200),
+  longitude: z.number().min(24).max(37),
+  latitude: z.number().min(22).max(32),
   image: z.instanceof(File).refine((file) => file.size <= 2 * 1024 * 1024, {
     message: "File size should be less than 2MB",
   }),
@@ -36,6 +38,8 @@ const formSchema = z.object({
       defaultValues: {
         title: "unknown topo",
         description: "",
+        longitude: 34,
+        latitude: 27.8,
         image: undefined,
       },
     });
@@ -43,7 +47,7 @@ const formSchema = z.object({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
      // sending one request with the image to our cloudflare worker /api, proxied through vite for dev
      // and one to the backend to add to the database. TODO implement rollback in case one of the 2 fails
-     const {title, description, image} = values;
+     const {image} = values;
      let imageName = "";
 
      const formData = new FormData();
@@ -71,7 +75,7 @@ const formSchema = z.object({
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${sessionToken}`,
         },
-        body: JSON.stringify({title: title, description: description, name: imageName}),
+        body: JSON.stringify({...values, image: undefined, name: imageName}),
       });
       const data = await response.json();
       console.log("Topo added:", data);
@@ -102,7 +106,7 @@ const formSchema = z.object({
                     <FormItem>
                       <FormLabel>Title</FormLabel>
                       <FormControl>
-                        <Input placeholder="Title" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -115,12 +119,40 @@ const formSchema = z.object({
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Description" {...field} />
+                        <Textarea {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="longitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Longitude (33-34.7 roughly)</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="latitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Latitude (27.7-29 roughly)</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="image"
