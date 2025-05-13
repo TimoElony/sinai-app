@@ -31,21 +31,12 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   useEffect ( () => {
     
     setLoading(true);
-    const timer = setTimeout(() => {
-    // Your timeout logic here
-    console.log('Timeout completed!');
-    }, 8000); // 3 second delay
-
-  
-  
     try{
       fetchAreas();
       fetchTopoPoints();
     } catch(err) {
       console.error('error fetching areas or points');
     }
-
-    return () => clearTimeout(timer);
   },[]);
 
   const fetchAreas = async () => {
