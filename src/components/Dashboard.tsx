@@ -184,19 +184,24 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         </TabsContent>
       </Tabs>
       {loading &&
-      
-        <div className="fixed inset-1 flex flex-col items-center justify-center bg-none">
-              <video 
-              autoPlay 
-              loop 
-              muted 
-              playsInline
-              className="w-max-20 h-auto object-contain"
-            >
-              <source src="https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/camelGoingClimbing.mp4" type="video/mp4" />
-            </video>
-            <Progress value={progress} className="w-56" />
-        </div>}
+      <>
+        <div className="fixed inset-0 z-50 bg-gray-800 opacity-30">
+        </div>
+        <div className="fixed inset-0 z-60 flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center bg-white p-4 rounded-lg w-40">
+                <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                className="w-max-20 h-auto object-contain"
+              >
+                <source src="https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/camelGoingClimbing.mp4" type="video/mp4" />
+              </video>
+              <Progress value={progress} className="w-30" />
+            </div>
+          </div>
+          </>}
     </>
   );
 }
