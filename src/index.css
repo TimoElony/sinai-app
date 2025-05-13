@@ -20,7 +20,7 @@ h2 {
 }
 
 th, td {
-  @apply p-2 text-left;
+  @apply p-2;
 }
 
 @theme inline {

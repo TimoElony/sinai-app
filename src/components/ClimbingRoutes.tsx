@@ -213,13 +213,13 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         loading="lazy"
                     />
                     <p>{topo.details}</p>
-                    <table className="table-auto">
+                    <table className="table-auto w-full">
                         <thead>
-                            <tr>
-                                <th>No in Topo</th>
-                                <th>Name</th>
-                                <th>Grade</th>
-                                <th>Length</th>
+                            <tr className="text-gray-700">
+                                <th className="text-start">No in Topo</th>
+                                <th className="text-start">Name</th>
+                                <th className="text-end">Grade</th>
+                                <th className="text-end">Length</th>
                             </tr>
                         </thead>
                     <tbody>
@@ -227,9 +227,9 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         return (
                             <tr key={route.id} className="hover:bg-gray-200">
                                 <td>{route.wall_topo_numbers[route.wall_topo_ids.indexOf(topo.id)] || "n.n."}<span className="text-xs opacity-30">{route.wall_topo_ids.indexOf(topo.id)}</span></td>
-                                <td className="font-semibold">{route.name}</td>
-                                <td>{route.grade_best_guess}</td>
-                                <td>{route.length}m</td>
+                                <td className="font-bold">{route.name}</td>
+                                <td className="text-end">{route.grade_best_guess}</td>
+                                <td className="text-end">{route.length}m</td>
                             </tr>
                         );
                     })}
