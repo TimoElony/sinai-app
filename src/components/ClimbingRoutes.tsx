@@ -140,7 +140,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     // Topos repeater and adding. editing and removing options when logged in
     return (
         <div className="flex flex-col items-baseline gap-4 p-2 md:p-4">
-            {sessionToken && <Button onClick={()=>refresh()}>Refresh</Button>}
             <h3>Select Area you want to see Routes of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
