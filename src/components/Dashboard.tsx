@@ -11,6 +11,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader } from "./ui/dialog.tsx";
 
 
 
@@ -33,14 +34,9 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     setLoading(true);
     try{
       fetchAreas();
-      setProgress(33);
       fetchTopoPoints();
-      setProgress(80);
     } catch(err) {
       console.error('error fetching areas or points');
-    } finally {
-      setLoading(false);
-      setProgress(13);
     }
   },[]);
 
@@ -50,12 +46,15 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       const data = await response.json();
       console.log(data);
       setAreas(data);
+      setProgress(50);
     } catch (error) {
       console.error("Error fetching areas:", error);
     }
   }
 
   const handleAreaChange = async (selectedValue: string) => {
+    setLoading(true);
+    setProgress(50);
     try {
       if (selectedValue === 'none') {
         setAreaDetails(undefined);
@@ -65,12 +64,17 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         setTopos([]);
         return;
       } else {
+        setProgress(70);
         await fetchDetails(selectedValue);
         setSelectedArea(selectedValue);
+        setProgress(80);
       }
       
     } catch (error) {
       console.error("Error changing area:", error);
+    } finally {
+      setLoading(false);
+      setProgress(100);
     }
     
   }
@@ -123,20 +127,30 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
           const response = await fetch('https://sinai-backend.onrender.com/geodata/topos');
           const data = await response.json();
           setTopopoints(data);
+          setProgress(80);
         } catch (error) {
           console.error("Error fetching topo points:", error);
+        } finally {
+          setLoading(false);
+          setProgress(100);
         }
   }
 
   const handleCragChange = async (selectedValue: string) => {
+    setLoading(true);
+    setProgress(50);
     try {
       if (!selectedArea) {
         throw new Error("Area not selected");
       }
       await fetchRoutesAndTopos(selectedArea, selectedValue);
+      setProgress(80);
       setSelectedCrag(selectedValue);
     } catch (error) {
       console.error("Error changing crag:", error);
+    } finally {
+      setLoading(false);
+      setProgress(100);
     }
     
   }
@@ -171,9 +185,18 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         </TabsContent>
       </Tabs>
       {loading &&
-        <div className="flex items-center justify-center">
-          <Progress value={progress} className="w-56" />
-          <h2>Booting up after inactivity...</h2>
+      
+        <div className="fixed inset-1 flex flex-col items-center justify-center bg-none">
+              <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              className="w-max-20 h-auto object-contain"
+            >
+              <source src="https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/camelGoingClimbing.mp4" type="video/mp4" />
+            </video>
+            <Progress value={progress} className="w-56" />
         </div>}
     </>
   );
