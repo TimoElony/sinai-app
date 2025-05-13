@@ -31,12 +31,21 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   useEffect ( () => {
     
     setLoading(true);
+    const timer = setTimeout(() => {
+    // Your timeout logic here
+    console.log('Timeout completed!');
+    }, 8000); // 3 second delay
+
+  
+  
     try{
       fetchAreas();
       fetchTopoPoints();
     } catch(err) {
       console.error('error fetching areas or points');
     }
+
+    return () => clearTimeout(timer);
   },[]);
 
   const fetchAreas = async () => {
@@ -68,8 +77,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         setSelectedArea(selectedValue);
         setProgress(80);
       }
-      
-    } catch (error) {
+
+    } catch (error) { 
       console.error("Error changing area:", error);
     } finally {
       setLoading(false);
@@ -197,7 +206,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
                 playsInline
                 className="w-30 h-auto object-contain"
               >
-                <source src="https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/camelGoingClimbing.mp4&quality=75" type="video/mp4" />
+                <source src="https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/camelGoingClimbing.mp4" type="video/mp4" />
               </video>
               <Progress value={progress} className="w-30" />
             </div>
