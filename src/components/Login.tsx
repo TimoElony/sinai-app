@@ -19,6 +19,7 @@ const submitSignup = async (email: string, password: string) => {
 
         const data = await response.json();
         console.log("Signup response:", data.message);
+        alert("Click on the link in your email to confirm your account");
     } catch (error) {
         console.error("Error signing up:", error);
     }
