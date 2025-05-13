@@ -85,7 +85,7 @@ const formSchema = z.object({
 
     return(
         <Dialog>
-        <DialogTrigger asChild><Button className="bg-green-300">Add Topo</Button></DialogTrigger>
+        <DialogTrigger asChild><Button className="bg-green-400">Add Topo</Button></DialogTrigger>
         <DialogContent>
             <DialogHeader>
             <DialogTitle>Upload your topo</DialogTitle>
