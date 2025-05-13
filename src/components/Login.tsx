@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 
 
@@ -52,28 +54,30 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
 
     return(
         <>
-            {hideAll && <button className="bg-none underline m-4" onClick={()=>setHideAll(false)}>Login</button>}
+            {hideAll && <Button className="m-2" onClick={()=>setHideAll(false)}>Login</Button>}
             {(!loggedIn && !hideAll) ? (
-                <div className="flex flex-col md:flex-row md:items-center gap-4 m-4">
-                        <button className="underline m-4" onClick={()=>setHideAll(true)}>hide</button>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 m-2">
+                        <Button onClick={()=>setHideAll(true)}>hide</Button>
                         <h1>{toggleLogin ? 'Login' : 'Sign up'}</h1>
-                        <label htmlFor="emailField">email*</label>
-                        <input
+                        <label className="m-2" htmlFor="emailField">email*
+                        <Input
                             type="email"
                             id="emailField"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="border-2 border-gray-300 rounded-md p-2"
                         />
-                        <label htmlFor="passwordField">password*</label>
-                        <input
+                        </label>
+                        <label className="m-2" htmlFor="passwordField">password*
+                        <Input
                             type="password"
                             id="passwordField"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="border-2 border-gray-300 rounded-md p-2"
                         />
-                        <button
+                        </label>
+                        <Button
                             onClick={() => {
                                 if (toggleLogin){
                                     console.log("Login clicked");
@@ -85,33 +89,31 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                                     alert('Check your email to confirm Sign up')
                                 }
                             }}
-                            className="StandardButton"
+                            
                         >
                             {toggleLogin? 'Login' : 'Sign up'}
-                        </button>
+                        </Button>
                         {toggleLogin && 
-                            <button
+                            <Button
                                 onClick={() => {
                                     setToggleLogin(false);
                                 }}
-                                className="StandardButton"
                             >
                                 No account yet?
-                            </button>
+                            </Button>
                         }   
                     </div>
             ): (
                 !hideAll &&
                     <div className="flex items-center m-4">
-                        <button
+                        <Button
                             onClick={() => {
                                 setSessionToken('');
                                 setHideAll(true);
                             }}
-                            className="StandardButton"
                         >
                             Logout
-                        </button>
+                        </Button>
                     </div>
             )}
         </>
