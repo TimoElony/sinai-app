@@ -43,7 +43,6 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     try {
       const response = await fetch('https://sinai-backend.onrender.com/climbingareas');
       const data = await response.json();
-      console.log(data);
       setAreas(data);
       setProgress(50);
     } catch (error) {
@@ -86,12 +85,9 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         const responseData = await response.json();        
 
         setAreaDetails({...areaData, ...responseData});
-        console.log('areaDetails fetched and set', responseData);
         if (responseData.crags.length <= 1 ) {
-          console.log('only one crag, setting selectedCrag, but without fetching');
           setSelectedCrag(area);
         } else {
-          console.log('multiple crags, setting selectedCrag to first one, but without fetching');
           setSelectedCrag(responseData.crags[0].name); 
         }
 
@@ -116,7 +112,6 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     } catch (error) {
         console.error("Error fetching routes or topos:");
     } finally {
-        console.log("Fetching routes and topos completed", topos[0], routes[0]);
     }
           
   };
