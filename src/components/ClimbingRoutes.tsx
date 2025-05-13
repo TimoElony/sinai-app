@@ -35,6 +35,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
 
     const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onAreaChange(e.target.value);
+        console.log('area changed', e.target.value);
+        console.log('selected area', selectedArea);
     };
 
     const refresh = () => {

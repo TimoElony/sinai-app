@@ -66,6 +66,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         return;
       } else {
         await fetchDetails(selectedValue);
+        setSelectedArea(selectedValue);
       }
       
     } catch (error) {
@@ -132,7 +133,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       if (!selectedArea) {
         throw new Error("Area not selected");
       }
-      fetchRoutesAndTopos(selectedArea, selectedValue);
+      await fetchRoutesAndTopos(selectedArea, selectedValue);
+      setSelectedCrag(selectedValue);
     } catch (error) {
       console.error("Error changing crag:", error);
     }
