@@ -1,6 +1,7 @@
 import { ClimbingArea} from "../types/types.ts";
 import { GradeBarChart } from "./GradeBarChart.tsx";
 import { Button } from "./ui/button.tsx";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card.tsx";
 
 export default function  ClimbingAreas ( {areas, selectedArea, areaDetails, onAreaChange}: {areas: ClimbingArea[]; selectedArea: string | undefined; areaDetails: ClimbingArea | undefined; onAreaChange: (selectedValue: string) => void} ) {
     return (
@@ -22,28 +23,23 @@ export default function  ClimbingAreas ( {areas, selectedArea, areaDetails, onAr
             {areaDetails && areaDetails.grade_distribution && areaDetails.access && (
                 <div className="flex flex-col gap-4 rounded-lg p-2 bg-gray-200 shadow-md">
                     <h3>{areaDetails.name}</h3>
+                    <p>{areaDetails.access_from_dahab_minutes}</p>
                     <div className="md:w-1/2">
                         <h3>Route Distribution for {areaDetails.name}</h3>
                         {areaDetails.grade_distribution ? <GradeBarChart data={areaDetails.grade_distribution}/>:<p>no data</p>}
                     </div>
                     <p>{areaDetails.description}</p>
-                    <div className="md:p-4">
-                        <table className="[&_td]:overflow-hidden [&_td]:text-ellipsis bg-gray-300 rounded-sm shadow-md">
-                            <thead>
-                                <tr>
-                                    <th className="w-2/3 text-start">Access</th>
-                                    <th className="w-1/3 text-end">Distance from Dahab</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{areaDetails.access.length > 120 ? areaDetails.access.substring(0,120) + "..." : areaDetails.access}</td>
-                                    <td className="text-end">{areaDetails.access_from_dahab_minutes}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Access</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {areaDetails.access}
+                        </CardContent>  
+                        <CardDescription hidden={true}>
+                            Description of getting to the area
+                        </CardDescription>       
+                    </Card>
                 </div>
             )}
             {!areaDetails && (
