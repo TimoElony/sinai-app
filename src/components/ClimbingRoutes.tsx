@@ -194,9 +194,9 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                                     <option value=" ">select route to add</option>
                                     {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
                                 </select>
-                                <label htmlFor="topoNumber" className="text-xs">
-                                <input  className="bg-accent max-w-8 mx-1" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
-                                # in Topo</label>
+                                <label htmlFor="topoNumber" className="text-xs p-2"># in Topo
+                                <input  className="bg-accent w-8 h-8 mx-2 text-lg text-center" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
+                                </label>
                                 <div className="flex flex-row gap-2">
                                     <Button onClick={()=>addRouteToTopo(topo.id)}>add/edit route</Button>
                                     <Button className="bg-red-600" onClick={()=>removeRouteFromTopo(topo.id)}>remove</Button>
