@@ -4,7 +4,7 @@ import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
 
-export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos}: 
+export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos, setLoading, setProgress}: 
     {   areas: ClimbingArea[];
         selectedArea: string | undefined; 
         areaDetails: AreaDetails | undefined; 
@@ -13,7 +13,9 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         selectedCrag: string | undefined; 
         onCragChange: (selectedValue: string) => void;
         routes: ClimbingRoute[]; 
-        topos: WallTopo[]}) {
+        topos: WallTopo[];
+        setLoading: (arg: boolean)=> void
+        setProgress: (arg: number)=> void}) {
 
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
@@ -151,8 +153,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             </select>
             {sessionToken && selectedCrag && selectedArea &&
                 <div className="flex flex-col md:flex-row gap-2">
-                    <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={selectedArea} refresh={refresh}/>
-                    <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={selectedArea} refresh={refresh}/>
+                    <CreateRouteModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={selectedArea} refresh={refresh} setLoading={setLoading} setProgress={setProgress}/>
+                    <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={selectedArea} refresh={refresh} setLoading={setLoading} setProgress={setProgress}/>
                 </div>
             }
             {areaDetails && areaDetails.crags && areaDetails.crags.length > 1  && (

@@ -33,7 +33,7 @@ const formSchema = z.object({
 });
 
 
-export default function CreateRouteModal({sessionToken, selectedCrag, selectedArea, refresh}:{sessionToken: string; selectedCrag: string; selectedArea: string, refresh: () => void}) {
+export default function CreateRouteModal({sessionToken, selectedCrag, selectedArea, refresh, setLoading, setProgress}:{sessionToken: string; selectedCrag: string; selectedArea: string, refresh: () => void; setLoading: (arg: boolean)=> void; setProgress: (arg: number)=>void}) {
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -50,6 +50,8 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
     });
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        setLoading(true);
+        setProgress(50);
         console.log("Form submitted:", values);
         const {name, grade, length, bolts, info, area, crag, setters} = values;
         const formData = new FormData();
@@ -76,7 +78,9 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
         } catch (error) {
             console.error("Error adding route:", error);
         } finally {
+            setProgress(100)
             refresh();
+            setLoading(false);
         }
     };
 

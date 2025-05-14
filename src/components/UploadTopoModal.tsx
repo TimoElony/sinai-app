@@ -31,7 +31,7 @@ const formSchema = z.object({
   }),
 });
 
-  export default function UploadTopoModal({sessionToken, selectedCrag, selectedArea, refresh}:{sessionToken: string; selectedCrag: string; selectedArea: string; refresh: () => void}) {
+  export default function UploadTopoModal({sessionToken, selectedCrag, selectedArea, refresh, setLoading, setProgress}:{sessionToken: string; selectedCrag: string; selectedArea: string; refresh: () => void; setLoading: (arg: boolean) => void; setProgress: (arg: number)=> void}) {
     
     const form= useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
@@ -47,6 +47,8 @@ const formSchema = z.object({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
      // sending one request with the image to our cloudflare worker /api, proxied through vite for dev
      // and one to the backend to add to the database. TODO implement rollback in case one of the 2 fails
+     setLoading(true);
+     setProgress(50);
      const {image} = values;
      let imageName = "";
 
@@ -66,6 +68,8 @@ const formSchema = z.object({
       console.log("Image uploaded:", data);
      } catch (error) {
       console.error("Error uploading image:");
+     } finally {
+      setProgress(80)
      }
 
      try {
@@ -82,6 +86,8 @@ const formSchema = z.object({
      } catch (error) {
       console.error("Error adding topo to database:");
      } finally {
+      setProgress(100);
+      setLoading(false);
       form.reset();
       refresh();
      }

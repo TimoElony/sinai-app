@@ -172,6 +172,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
             routes={routes}
             topos={topos}
             selectedArea={selectedArea}
+            setLoading={setLoading}
+            setProgress={setProgress}
           />
         </TabsContent>
         <TabsContent value="map">
