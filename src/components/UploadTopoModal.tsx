@@ -50,7 +50,7 @@ const formSchema = z.object({
      setLoading(true);
      setProgress(50);
      const {image} = values;
-     let imageName = "";
+     let imageName = undefined;
 
      const formData = new FormData();
      formData.append("image", image);
@@ -73,6 +73,9 @@ const formSchema = z.object({
      }
 
      try {
+      if (!imageName) {
+        throw new Error("topo not uploaded, try again or contact Timo")
+      }
       const response = await fetch(`https://sinai-backend.onrender.com/walltopos/${selectedArea}/${selectedCrag}`, {
         method: 'POST',
         headers: {
