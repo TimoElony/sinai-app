@@ -20,7 +20,7 @@ h2 {
 }
 
 th, td {
-  @apply p-3 text-xs md:text-sm;
+  @apply p-3 text-xs sm:text-sm;
 }
 
 @theme inline {
