@@ -152,6 +152,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
 
   return (
     <>
+      <button onClick={() => {throw new Error("This is your first error!");}}>Break the world</button>;
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full p-2">
         <TabsList className="grid w-full grid-cols-3 min-h-15">
           <TabsTrigger value="areas" className="w-[100%]">Areas</TabsTrigger>
