@@ -184,7 +184,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
 
                 const url = `${src}${topo.extracted_filename}?width=${maxWidth}&quality=75&format=webp`;
             return (
-                <div key={topo.id} className="flex flex-col gap-2 max-w-vw">
+                <div key={topo.id} className="flex flex-col gap-2 max-w-full">
                     <div className="flex flex-col md:flex-row md:items-center">
                         <h2 >{topo.description}</h2>
                         { sessionToken && (
