@@ -59,6 +59,7 @@ const formSchema = z.object({
       const response = await fetch('https://curly-king-5594.timo-elony.workers.dev', {
         method: 'POST',
         headers: {
+          "Content-Type": "multipart/form-data",
           'Authorization': `Bearer ${sessionToken}`,
         },
         body: formData,
