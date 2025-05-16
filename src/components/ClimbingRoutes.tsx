@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
+import AddLineModal from "./AddLineModal";
 
 export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos, setLoading, setProgress}: 
     {   areas: ClimbingArea[];
@@ -19,6 +20,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
 
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
+    const topoRef = useRef<HTMLImageElement>(null);
 
 
     useEffect(() => {
@@ -189,6 +191,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
                     <div className="flex flex-col md:flex-row md:items-center">
                         <h2 >{topo.description}</h2>
+                        
                         { sessionToken && (
                             <div className="flex flex-col md:flex-row md:items-center bg-gray-200 rounded-lg gap-2 mx-1 p-2">
                                 <select className="p-2 bg-white rounded-lg" value={selectedRoute?.id || " "} onChange={(e)=>setSelectedRoute(routes.find(route=>route.id === e.target.value))}>
@@ -205,7 +208,11 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                             </div>
                         )}
                     </div>
+                    {topoRef.current && topoRef.current.complete && 
+                        <AddLineModal topoImage={topoRef.current}/>
+                    }
                     <img
+                        ref={topoRef}
                         src={url}
                         srcSet={srcSet}
                         sizes={`(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}

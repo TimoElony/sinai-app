@@ -50,8 +50,8 @@ export default function  ClimbingAreas ( {areas, selectedArea, areaDetails, onAr
                         return (
                             <div key={area.id} className="bg-gray-200 p-4 rounded-lg shadow-md [&_p]:overflow-ellipsis [&_p]:overflow-clip" onClick={() => onAreaChange(area.name)}>
                                 <h3>{area.name}</h3>
-                                <p>Distance from Dahab: {area.access_from_dahab_minutes}</p>
-                                <p>Route Count: {area.route_count}</p>
+                                <p><span className="font-semibold">Distance from Dahab:</span> {area.access_from_dahab_minutes}</p>
+                                <p><span className="font-semibold">Route Count:</span> {area.route_count}</p>
                             </div>
                         );
                     })}
