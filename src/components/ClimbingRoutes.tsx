@@ -208,8 +208,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                             </div>
                         )}
                     </div>
-                    {topoRef.current && topoRef.current.complete && 
-                        <AddLineModal topoImage={topoRef.current}/>
+                    {url && 
+                        <AddLineModal imageUrl={url}/>
                     }
                     <img
                         ref={topoRef}
