@@ -13,6 +13,32 @@ type AddLineModalProps = {
     imageUrl: string;
 }
 
+function drawCardinalSpline(ctx: CanvasRenderingContext2D, points: [number, number][], tension = 0.5) {
+    // did not have the time to really check the validity of this, but smooth enough, close enough and the control points are there to check
+        if (points.length < 2) return;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0][0], points[0][1]);
+
+        for (let i = 0; i < points.length - 1; i++) {
+            const p0 = i > 0 ? points[i - 1] : points[0];
+            const p1 = points[i];
+            const p2 = points[i + 1];
+            const p3 = i < points.length - 2 ? points[i + 2] : p2;
+
+            // Control points (cardinal spline tangent calculations)
+            const cp1x = p1[0] + (p2[0] - p0[0]) * tension / 3;
+            const cp1y = p1[1] + (p2[1] - p0[1]) * tension / 3;
+            const cp2x = p2[0] - (p3[0] - p1[0]) * tension / 3;
+            const cp2y = p2[1] - (p3[1] - p1[1]) * tension / 3;
+
+            // Cubic Bézier segment
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2[0], p2[1]);
+    }
+
+    ctx.stroke();
+    }
+
 export type ControlPoint = [number, number];
 
 export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
@@ -21,8 +47,9 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
     const imageRef = useRef<HTMLImageElement | null>(null);
 
-    const [controlPoints, setControlPoints] = useState<ControlPoint[]>([[5,5],[5,10],[5,50]]);
+    const [controlPoints, setControlPoints] = useState<ControlPoint[]>([]);
     const [imageReady, setImageReady] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     useEffect(()=> {
         const canvas = canvasRef.current;
@@ -76,31 +103,19 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         canvas.height = imageRef.current.height;
     }
 
-    function drawCardinalSpline(ctx: CanvasRenderingContext2D, points: [number, number][], tension = 0.5) {
-    // did not have the time to really check the validity of this, but smooth enough, close enough and the control points are there to check
-        if (points.length < 2) return;
-
-        ctx.beginPath();
-        ctx.moveTo(points[0][0], points[0][1]);
-
-        for (let i = 0; i < points.length - 1; i++) {
-            const p0 = i > 0 ? points[i - 1] : points[0];
-            const p1 = points[i];
-            const p2 = points[i + 1];
-            const p3 = i < points.length - 2 ? points[i + 2] : p2;
-
-            // Control points (cardinal spline tangent calculations)
-            const cp1x = p1[0] + (p2[0] - p0[0]) * tension / 3;
-            const cp1y = p1[1] + (p2[1] - p0[1]) * tension / 3;
-            const cp2x = p2[0] - (p3[0] - p1[0]) * tension / 3;
-            const cp2y = p2[1] - (p3[1] - p1[1]) * tension / 3;
-
-            // Cubic Bézier segment
-            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2[0], p2[1]);
+    function handleOpenChange (open: boolean) {
+        //open is determined by internal Dialog Logic, if it opens, we just abide, if it closes we clean up the context
+        if (!open) {
+            setImageReady(false);
+            setControlPoints([]);
+            ctxRef.current = null;
+            imageRef.current = null;
+            canvasRef.current = null;
+        }
+        setIsOpen(open); 
     }
 
-    ctx.stroke();
-    }
+    
     function addLineToCanvas () {
         console.log("button pressed, control points", controlPoints, "image dimensions", imageRef.current?.height);
         if (!ctxRef.current) throw new Error("Canvas Context not initialized");
@@ -120,7 +135,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     }
 
     return(
-        <Dialog>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild><Button className="bg-green-400">Line Editor</Button></DialogTrigger>
         <DialogContent>
             <DialogHeader>
