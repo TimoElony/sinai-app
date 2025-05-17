@@ -146,7 +146,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
                 Click Plus to add Line, move nodes to correct path
             </DialogDescription>
             </DialogHeader>
-            <div className="relative w-full h-[60vh] overflow-auto">
+            <div className="relative w-full h-[50vh] md:h-[60vh] overflow-auto">
                 <img
                             ref={imageRef}
                             src={imageUrl}
