@@ -7,7 +7,8 @@ import {
     DialogTrigger,
   } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
-import { useEffect, useRef, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
+import { Event } from "@sentry/react";
 
 type AddLineModalProps = {
     imageUrl: string;
@@ -32,7 +33,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         ctxRef.current = ctx;
     },[imageReady, imageRef]);
 
-    function handleMouseDown (e) {
+    function handleMouseDown (e: MouseEvent) {
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
         const squaredDistance = controlPoints.map(point=>(point[0]-x)*(point[0]-x)+(point[1]-y)*(point[1]-y)); // pythagoras square distance
