@@ -64,9 +64,11 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         const y = e.nativeEvent.offsetY;
         const squaredDistance = controlPoints.map(point=>(point[0]-x)*(point[0]-x)+(point[1]-y)*(point[1]-y)); // pythagoras square distance
         let nearestPoint = controlPoints[0];
-        for (let i = 0; i < squaredDistance.length-1; i++) {
-            if (squaredDistance[i+1] < squaredDistance[i]) {
-                nearestPoint = controlPoints[i+1]
+        let minDistance = squaredDistance[0];
+        for (let i = 1; i < squaredDistance.length; i++) {
+            if (squaredDistance[i] < minDistance) {
+                nearestPoint = controlPoints[i];
+                minDistance = squaredDistance[i];
             }
         }
 
@@ -144,7 +146,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
                 Click Plus to add Line, move nodes to correct path
             </DialogDescription>
             </DialogHeader>
-            <div className="relative w-full h-[70vh] overflow-auto">
+            <div className="relative w-full h-[60vh] overflow-auto">
                 <img
                             ref={imageRef}
                             src={imageUrl}
