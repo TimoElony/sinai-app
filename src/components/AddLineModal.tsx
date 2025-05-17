@@ -8,7 +8,6 @@ import {
   } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
 import { MouseEvent, useEffect, useRef, useState } from "react";
-import { Event } from "@sentry/react";
 
 type AddLineModalProps = {
     imageUrl: string;
