@@ -137,7 +137,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     return(
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild><Button className="bg-green-400">Line Editor</Button></DialogTrigger>
-        <DialogContent>
+        <DialogContent className="h-[80vh]">
             <DialogHeader>
             <DialogTitle>Edit Line in Topo</DialogTitle>
             <DialogDescription>
