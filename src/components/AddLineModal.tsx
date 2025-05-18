@@ -50,6 +50,15 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     const [controlPoints, setControlPoints] = useState<ControlPoint[]>([]);
     const [imageReady, setImageReady] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [mousePosition, setMousePosition] = useState([0,0]);
+    const [nearestIndex, setNearestIndex] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+
+    useEffect(() => {
+        const handleGlobalMouseUp = () => setIsDragging(false);
+        window.addEventListener('mouseup', handleGlobalMouseUp);
+        return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+    }, []);
 
     useEffect(()=> {
         const canvas = canvasRef.current;
@@ -62,32 +71,44 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     function handleMouseDown (e: MouseEvent) {
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
+        setMousePosition([x,y]);
+        setIsDragging(true);        
         const squaredDistance = controlPoints.map(point=>(point[0]-x)*(point[0]-x)+(point[1]-y)*(point[1]-y)); // pythagoras square distance
         let nearestPoint = controlPoints[0];
         let minDistance = squaredDistance[0];
+        let nearest_i = 0;
         for (let i = 1; i < squaredDistance.length; i++) {
             if (squaredDistance[i] < minDistance) {
                 nearestPoint = controlPoints[i];
                 minDistance = squaredDistance[i];
+                nearest_i = i;
             }
         }
-
-        const context = ctxRef.current;
-        if(!context) throw new Error("context not found at mouse down");
-        context.lineWidth = 3;
-        context.strokeStyle = "red"
-        context.beginPath();
-        context.arc(nearestPoint[0], nearestPoint[1], 5, 0, Math.PI*2);
-        context.stroke();
+        setNearestIndex(nearest_i);
 
     }
 
-    function handleMouseMove () {
+    function handleMouseMove (e: MouseEvent) {
+        if (!isDragging) return;
+    
+        const x = e.nativeEvent.offsetX;
+        const y = e.nativeEvent.offsetY;
+        const dist_x = x - mousePosition[0];
+        const dist_y = y - mousePosition[1];
         
+        const newPoints = [...controlPoints];
+        newPoints[nearestIndex] = [
+            controlPoints[nearestIndex][0] + dist_x,
+            controlPoints[nearestIndex][1] + dist_y
+        ];
+        setControlPoints(newPoints);
+        setMousePosition([x,y]);
+        addLineToCanvas();
     }
 
-    function handleMouseUp () {
-        
+    function handleMouseUp (e: MouseEvent) {
+        e.preventDefault();
+        setIsDragging(false);
     }
 
     function handleImageload () {
@@ -119,9 +140,10 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
 
     
     function addLineToCanvas () {
-        console.log("button pressed, control points", controlPoints, "image dimensions", imageRef.current?.height);
         if (!ctxRef.current) throw new Error("Canvas Context not initialized");
         const context = ctxRef.current;
+        if(!canvasRef.current) throw new Error("Canvas ref is null");
+        context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
         context.strokeStyle = 'blue';
         context.lineWidth = 2;
