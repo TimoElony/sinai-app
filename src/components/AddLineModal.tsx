@@ -7,7 +7,7 @@ import {
     DialogTrigger,
   } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
-import { MouseEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type AddLineModalProps = {
     imageUrl: string;
@@ -52,7 +52,6 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     const [controlPoints, setControlPoints] = useState<ControlPoint[]>([]);
     const [imageReady, setImageReady] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const [mousePosition, setMousePosition] = useState([0,0]);
     const [nearestIndex, setNearestIndex] = useState(0);
     const isDraggingRef = useRef(false);
 
@@ -74,9 +73,19 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     function handleMouseDown (e: PointerOrTouchEvent) {
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
-        console.log("mousedown", e);
+        if(!controlPoints) throw new Error("there is no line to edit, add one")
         if(!ctxRef.current) throw new Error("mousdown fail"); 
-        isDraggingRef.current = true;      
+        isDraggingRef.current = true;
+        const squaredDistance = controlPoints.map(point=>(point[0]-x)*(point[0]-x)+(point[1]-y)*(point[1]-y)); // pythagoras square distance
+        let minDistance = squaredDistance[0];
+        let nearestIndex = 0;
+        for (let i = 1; i < squaredDistance.length; i++) {
+            if (squaredDistance[i] < minDistance) {
+                minDistance = squaredDistance[i];
+                nearestIndex = i;
+            }
+        }      
+        setNearestIndex(nearestIndex);
         ctxRef.current.beginPath();
         ctxRef.current.strokeStyle = 'blue';
         ctxRef.current.lineWidth = 2;
@@ -93,6 +102,9 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         if(!isDraggingRef.current) throw new Error("mousemove fail bc of isDragging ");
         ctxRef.current.lineTo(x,y);
         ctxRef.current.stroke();
+        let newPoints = [...controlPoints]
+        newPoints[nearestIndex] = [x,y];
+        setControlPoints(newPoints);
     }
 
     function handleMouseUp (e: PointerOrTouchEvent) {
@@ -102,6 +114,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         if(!ctxRef.current) throw new Error("mouseup fail"); 
         ctxRef.current.closePath();
         isDraggingRef.current = false;
+        drawRoute();
     }
 
     function handleImageload () {
@@ -132,12 +145,12 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     }
 
     
-    function addLineToCanvas () {
+    function drawRoute () {
         if (!ctxRef.current) throw new Error("Canvas Context not initialized");
         const context = ctxRef.current;
         if(!canvasRef.current) throw new Error("Canvas ref is null");
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
+        
         context.strokeStyle = 'blue';
         context.lineWidth = 2;
         
@@ -184,7 +197,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
                         height: imageRef.current?.height,
                     }}></canvas>
             </div>
-            <Button onClick={()=>addLineToCanvas()}>Add Line</Button>
+            <Button onClick={()=>drawRoute()}>Add Line</Button>
         </DialogContent>
         </Dialog>
     );
