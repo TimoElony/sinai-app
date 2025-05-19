@@ -155,7 +155,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         
         context.strokeStyle = 'blue';
-        context.lineWidth = 2;
+        context.lineWidth = 1;
         
         drawCardinalSpline(context, controlPoints);
 
