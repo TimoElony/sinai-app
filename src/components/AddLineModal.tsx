@@ -52,8 +52,8 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     const [controlPoints, setControlPoints] = useState<ControlPoint[]>([]);
     const [imageReady, setImageReady] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const [nearestIndex, setNearestIndex] = useState(0);
-    const isDraggingRef = useRef(false);
+    const [nearestIndex, setNearestIndex] = useState<number | undefined>(undefined);
+    const [isDragging, setIsDragging] = useState(false);
 
     // in case mouse leaves the canvas
     // useEffect(() => {
@@ -74,18 +74,20 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
         if(!controlPoints) throw new Error("there is no line to edit, add one")
-        if(!ctxRef.current) throw new Error("mousdown fail"); 
-        isDraggingRef.current = true;
+        if(!ctxRef.current) throw new Error("context not defined"); 
         const squaredDistance = controlPoints.map(point=>(point[0]-x)*(point[0]-x)+(point[1]-y)*(point[1]-y)); // pythagoras square distance
-        let minDistance = squaredDistance[0];
-        let nearestIndex = 0;
-        for (let i = 1; i < squaredDistance.length; i++) {
+        let minDistance = 30; //needs to be closer than 30 to trigger
+        let nearestIndex = undefined;
+        for (let i = 0; i < squaredDistance.length; i++) {
             if (squaredDistance[i] < minDistance) {
                 minDistance = squaredDistance[i];
                 nearestIndex = i;
             }
-        }      
-        setNearestIndex(nearestIndex);
+        }
+        if (nearestIndex != undefined) {
+            setNearestIndex(nearestIndex);
+            setIsDragging(true);
+        }
         ctxRef.current.beginPath();
         ctxRef.current.strokeStyle = 'blue';
         ctxRef.current.lineWidth = 2;
@@ -94,12 +96,12 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     }
 
     function handleMouseMove (e: PointerOrTouchEvent) {
+        if(!isDragging || nearestIndex === undefined) return;
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
         console.log(x , y);
         console.log("mousemove", e);
         if(!ctxRef.current) throw new Error("mousemove fail bc of context");
-        if(!isDraggingRef.current) throw new Error("mousemove fail bc of isDragging ");
         ctxRef.current.lineTo(x,y);
         ctxRef.current.stroke();
         let newPoints = [...controlPoints]
@@ -108,13 +110,14 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     }
 
     function handleMouseUp (e: PointerOrTouchEvent) {
+        if(!isDragging) return;
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
         console.log(x,y)
         if(!ctxRef.current) throw new Error("mouseup fail"); 
         ctxRef.current.closePath();
-        isDraggingRef.current = false;
         drawRoute();
+        setIsDragging(false);
     }
 
     function handleImageload () {
