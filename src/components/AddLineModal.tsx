@@ -13,6 +13,8 @@ type AddLineModalProps = {
     imageUrl: string;
 }
 
+type PointerOrTouchEvent = React.PointerEvent<HTMLElement>;
+
 function drawCardinalSpline(ctx: CanvasRenderingContext2D, points: [number, number][], tension = 0.5) {
     // did not have the time to really check the validity of this, but smooth enough, close enough and the control points are there to check
         if (points.length < 2) return;
@@ -52,13 +54,14 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [mousePosition, setMousePosition] = useState([0,0]);
     const [nearestIndex, setNearestIndex] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
+    const isDraggingRef = useRef(false);
 
-    useEffect(() => {
-        const handleGlobalMouseUp = () => setIsDragging(false);
-        window.addEventListener('mouseup', handleGlobalMouseUp);
-        return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-    }, []);
+    // in case mouse leaves the canvas
+    // useEffect(() => {
+    //     const handleGlobalMouseUp = () => setIsDragging(false);
+    //     window.addEventListener('mouseup', handleGlobalMouseUp);
+    //     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+    // }, []);
 
     useEffect(()=> {
         const canvas = canvasRef.current;
@@ -68,47 +71,37 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         ctxRef.current = ctx;
     },[imageReady, imageRef]);
 
-    function handleMouseDown (e: MouseEvent) {
+    function handleMouseDown (e: PointerOrTouchEvent) {
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
-        setMousePosition([x,y]);
-        setIsDragging(true);        
-        const squaredDistance = controlPoints.map(point=>(point[0]-x)*(point[0]-x)+(point[1]-y)*(point[1]-y)); // pythagoras square distance
-        let nearestPoint = controlPoints[0];
-        let minDistance = squaredDistance[0];
-        let nearest_i = 0;
-        for (let i = 1; i < squaredDistance.length; i++) {
-            if (squaredDistance[i] < minDistance) {
-                nearestPoint = controlPoints[i];
-                minDistance = squaredDistance[i];
-                nearest_i = i;
-            }
-        }
-        setNearestIndex(nearest_i);
+        console.log("mousedown", e);
+        if(!ctxRef.current) throw new Error("mousdown fail"); 
+        isDraggingRef.current = true;      
+        ctxRef.current.beginPath();
+        ctxRef.current.strokeStyle = 'blue';
+        ctxRef.current.lineWidth = 2;
+        ctxRef.current.moveTo(x,y);
 
     }
 
-    function handleMouseMove (e: MouseEvent) {
-        if (!isDragging) return;
-    
+    function handleMouseMove (e: PointerOrTouchEvent) {
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
-        const dist_x = x - mousePosition[0];
-        const dist_y = y - mousePosition[1];
-        
-        const newPoints = [...controlPoints];
-        newPoints[nearestIndex] = [
-            controlPoints[nearestIndex][0] + dist_x,
-            controlPoints[nearestIndex][1] + dist_y
-        ];
-        setControlPoints(newPoints);
-        setMousePosition([x,y]);
-        addLineToCanvas();
+        console.log(x , y);
+        console.log("mousemove", e);
+        if(!ctxRef.current) throw new Error("mousemove fail bc of context");
+        if(!isDraggingRef.current) throw new Error("mousemove fail bc of isDragging ");
+        ctxRef.current.lineTo(x,y);
+        ctxRef.current.stroke();
     }
 
-    function handleMouseUp (e: MouseEvent) {
-        e.preventDefault();
-        setIsDragging(false);
+    function handleMouseUp (e: PointerOrTouchEvent) {
+        const x = e.nativeEvent.offsetX;
+        const y = e.nativeEvent.offsetY;
+        console.log(x,y)
+        if(!ctxRef.current) throw new Error("mouseup fail"); 
+        ctxRef.current.closePath();
+        isDraggingRef.current = false;
     }
 
     function handleImageload () {
@@ -181,9 +174,9 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
                         />
                 <canvas
                     ref={canvasRef}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
+                    onPointerDown={handleMouseDown}
+                    onPointerMove={handleMouseMove}
+                    onPointerUp={handleMouseUp}
                     className="border-none absolute top-0 left-0 z-10"
                     style={{
                         pointerEvents: 'auto',
