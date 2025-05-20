@@ -68,6 +68,9 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         ctxRef.current = ctx;
+        console.log("context initialised", ctxRef.current);
+        const dpr = window.devicePixelRatio || 1;
+        ctx.scale(dpr, dpr);
     },[imageReady, imageRef]);
 
     function handleMouseDown (e: PointerOrTouchEvent) {
@@ -131,8 +134,10 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         const canvas = canvasRef.current;
         if (!canvas) throw new Error("canvas not defined");
 
-        canvas.width = imageRef.current.width;
-        canvas.height = imageRef.current.height;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = imageRef.current.width * dpr;
+        canvas.height = imageRef.current.height * dpr;
+
     }
 
     function handleOpenChange (open: boolean) {
