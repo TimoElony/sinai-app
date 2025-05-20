@@ -26,8 +26,8 @@ const formSchema = z.object({
   description: z.string().min(2).max(200),
   longitude: z.number().min(24).max(37),
   latitude: z.number().min(22).max(32),
-  image: z.instanceof(File).refine((file) => file.size <= 2 * 1024 * 1024, {
-    message: "File size should be less than 2MB",
+  image: z.instanceof(File).refine((file) => file.size <= 8 * 1024 * 1024, {
+    message: "File size should be less than 8MB",
   }),
 });
 

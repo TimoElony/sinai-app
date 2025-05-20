@@ -8,12 +8,42 @@ import {
   } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
 import { useEffect, useRef, useState } from "react";
+import { Input } from "./ui/input";
 
 type AddLineModalProps = {
     imageUrl: string;
+    topoId: string;
+    filename: string;
+    sessionToken: string;
 }
 
 type PointerOrTouchEvent = React.PointerEvent<HTMLElement>;
+
+function drawCallout(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  number: number,
+  radius = 9,
+  bgColor = "white",
+  textColor = "black"
+) {
+  // Draw white background circle
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fillStyle = bgColor;
+  ctx.fill();
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 0;
+  ctx.stroke();
+
+  // Draw the number inside
+  ctx.fillStyle = textColor;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `${radius}px Arial`; // Adjust font size relative to radius
+  ctx.fillText(number.toString(), x-0.5, y+0.5);
+}
 
 function drawCardinalSpline(ctx: CanvasRenderingContext2D, points: [number, number][], tension = 0.5) {
     // did not have the time to really check the validity of this, but smooth enough, close enough and the control points are there to check
@@ -43,13 +73,16 @@ function drawCardinalSpline(ctx: CanvasRenderingContext2D, points: [number, numb
 
 export type ControlPoint = [number, number];
 
-export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
+
+export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken }: AddLineModalProps) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
     const imageRef = useRef<HTMLImageElement | null>(null);
 
     const [controlPoints, setControlPoints] = useState<ControlPoint[]>([]);
+    const [lineLabel, setLineLabel] = useState<number>(19);
+
     const [imageReady, setImageReady] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [nearestIndex, setNearestIndex] = useState<number | undefined>(undefined);
@@ -162,28 +195,48 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         context.imageSmoothingEnabled = false;
         context.strokeStyle = 'blue';
         context.lineWidth = 1;
+
+        if (!controlPoints) throw new Error("controlpoints not initialised");
         
         drawCardinalSpline(context, controlPoints);
-
         controlPoints.map((point)=> {
             context.beginPath();
             context.arc(point[0], point[1], 5, 0, Math.PI*2);
             context.stroke();
         })
 
+        drawCallout(context, controlPoints[controlPoints.length-1][0],controlPoints[controlPoints.length-1][1] + 20, lineLabel, 9, 'white', 'black');
+
+    }
+
+    async function submitLine () {
+        try {
+            const response = await fetch(`https://sinai-backend.onrender.com/walltopos/drawnLine`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionToken}`,
+                },
+                body: JSON.stringify({line: controlPoints, id: topoId, file: filename, number: lineLabel}),
+            });
+      const data = await response.json();
+      console.log("Topo added:", data);
+        } catch (error) {
+            
+        }
     }
 
     return(
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild><Button className="bg-green-400">Line Editor</Button></DialogTrigger>
-        <DialogContent className="h-[80vh]">
+        <DialogContent className="h-[80vh] md:h-[90vh]">
             <DialogHeader>
             <DialogTitle>Edit Line in Topo</DialogTitle>
             <DialogDescription>
-                Click Plus to add Line, move nodes to correct path
+                Submit line for all climbers to see
             </DialogDescription>
             </DialogHeader>
-            <div className="relative w-full h-[50vh] md:h-[60vh] overflow-auto">
+            <div className="relative w-full h-[50vh] md:h-[65vh] overflow-auto">
                 <img
                             ref={imageRef}
                             src={imageUrl}
@@ -206,7 +259,11 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
                         height: imageRef.current?.height,
                     }}></canvas>
             </div>
+            <div className="grid grid-cols-3 gap-4">
             <Button onClick={()=>drawRoute()}>Add Line</Button>
+            <Button onClick={()=>submitLine()}>Submit Line</Button>
+            <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200" type="number" value={lineLabel?.toString()} onChange={(e)=>setLineLabel(Number(e.target.value))}/>
+            </div>
         </DialogContent>
         </Dialog>
     );

@@ -209,7 +209,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         )}
                     </div>
                     {url && 
-                        <AddLineModal imageUrl={url}/>
+                        <AddLineModal imageUrl={url} topoId={topo.id} filename={topo.extracted_filename} sessionToken={sessionToken}/>
                     }
                     <img
                         ref={topoRef}
