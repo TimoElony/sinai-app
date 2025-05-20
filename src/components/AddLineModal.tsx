@@ -159,6 +159,7 @@ export default function AddLineModal ({ imageUrl }: AddLineModalProps) {
         if(!canvasRef.current) throw new Error("Canvas ref is null");
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         
+        context.imageSmoothingEnabled = false;
         context.strokeStyle = 'blue';
         context.lineWidth = 1;
         
