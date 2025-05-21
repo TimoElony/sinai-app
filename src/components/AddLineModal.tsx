@@ -9,6 +9,7 @@ import {
 import { Button } from "./ui/button";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "./ui/input";
+import { emit } from "process";
 
 type AddLineModalProps = {
     imageUrl: string;
@@ -132,7 +133,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
     }
 
     function handleMouseMove (e: PointerOrTouchEvent) {
-        if(!isDragging || nearestIndex === undefined) return;
+        if(!isDragging || nearestIndex === undefined || !canvasRef.current) return;
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
         console.log(x , y);
@@ -152,6 +153,13 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
         console.log(x,y)
         if(!ctxRef.current) throw new Error("mouseup fail"); 
         ctxRef.current.closePath();
+        drawRoute();
+        setIsDragging(false);
+    }
+
+    function handleMouseLeave (e: PointerOrTouchEvent) {
+        if (!isDragging) return;
+        ctxRef.current?.closePath();
         drawRoute();
         setIsDragging(false);
     }
@@ -208,6 +216,10 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
         drawCallout(context, controlPoints[controlPoints.length-1][0],controlPoints[controlPoints.length-1][1] + 20, lineLabel, 9, 'white', 'black');
 
     }
+    function handleChange (value: string) {
+        setLineLabel(Number(value));
+        drawRoute();
+    }
 
     async function submitLine () {
         try {
@@ -252,6 +264,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
                     onPointerDown={handleMouseDown}
                     onPointerMove={handleMouseMove}
                     onPointerUp={handleMouseUp}
+                    onPointerLeave={handleMouseLeave}
                     className="border-none absolute top-0 left-0 z-10"
                     style={{
                         pointerEvents: 'auto',
@@ -262,7 +275,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
             <div className="grid grid-cols-3 gap-4">
             <Button onClick={()=>drawRoute()}>Add Line</Button>
             <Button onClick={()=>submitLine()}>Submit Line</Button>
-            <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200" type="number" value={lineLabel?.toString()} onChange={(e)=>setLineLabel(Number(e.target.value))}/>
+            <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200" type="number" value={lineLabel?.toString()} onChange={(e)=>handleChange(e.target.value)} onBlur={(e)=>handleChange(e.target.value)}/>
             </div>
         </DialogContent>
         </Dialog>
