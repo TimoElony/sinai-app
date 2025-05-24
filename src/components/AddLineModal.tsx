@@ -158,7 +158,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
         setIsDragging(false);
     }
 
-    function handleMouseLeave (e: PointerOrTouchEvent) {
+    function handleMouseLeave () {
         if (!isDragging) return;
         ctxRef.current?.closePath();
         drawRoute();
