@@ -251,6 +251,8 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
       console.log("Topo added:", data);
         } catch (error) {
             console.error("line segment couldnt be added", error)
+        } finally {
+            
         }
     }
 
