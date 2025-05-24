@@ -222,6 +222,22 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
     }
 
     async function submitLine () {
+        if (!imageRef.current || !imageRef.current.width ) throw new Error("imagedims not initialised");
+        const width = imageRef.current.width;
+        const height = imageRef.current.height;
+        const normalizedPoints = controlPoints.map((point)=>[point[0]/width, point[1]/height]);
+        const geoJsonFeature = {
+            type: "Feature",
+            properties: {
+                topo_id: topoId,
+                file_name: filename,
+                line_label: lineLabel
+            },
+            geometry: {
+                type: "LineString",
+                coordinates: normalizedPoints
+            }
+        };
         try {
             const response = await fetch(`https://sinai-backend.onrender.com/walltopos/drawnLine`, {
                 method: 'PUT',
@@ -229,12 +245,12 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${sessionToken}`,
                 },
-                body: JSON.stringify({line: controlPoints, id: topoId, file: filename, number: lineLabel}),
+                body: JSON.stringify(geoJsonFeature),
             });
       const data = await response.json();
       console.log("Topo added:", data);
         } catch (error) {
-            
+            console.error("line segment couldnt be added", error)
         }
     }
 
