@@ -254,8 +254,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
                 throw new Error(errorData.message || 'Failed to save line');
             }
             const data = await response.json();
-            console.log("Topo added:", data);
-            toast.success("line has been added");
+            toast.success(data.message);
         } catch (error) {
             toast.error(String(error));
         }
