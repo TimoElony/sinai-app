@@ -9,7 +9,8 @@ import {
 import { Button } from "./ui/button";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "./ui/input";
-import { emit } from "process";
+import { toast } from "sonner";
+
 
 type AddLineModalProps = {
     imageUrl: string;
@@ -247,12 +248,16 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
                 },
                 body: JSON.stringify(geoJsonFeature),
             });
-      const data = await response.json();
-      console.log("Topo added:", data);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save line');
+            }
+            const data = await response.json();
+            console.log("Topo added:", data);
+            toast.success("line has been added");
         } catch (error) {
-            console.error("line segment couldnt be added", error)
-        } finally {
-            
+            toast.error(String(error));
         }
     }
 

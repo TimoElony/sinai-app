@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Dashboard from './components/Dashboard.tsx'
 import Login from './components/Login.tsx'
+import { Toaster } from './components/ui/sonner.tsx';
 // added email and little change
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
       <main className='lg:w-3xl lg:mx-auto'>
         <Dashboard sessionToken={sessionToken}/>
       </main>
+      <Toaster/>
     </div>
   )
 }
