@@ -254,16 +254,25 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                                 if (!Array.isArray(segment.geometry.coordinates) || segment.geometry.type === 'Point') return;
                                 const width = topoRef.current ? topoRef.current[index].width : 200;
                                 const height = topoRef.current ? topoRef.current[index].height : 200;
-                                const normPoints: Array<[number, number]> = segment.geometry.coordinates.map(([xn,yn]) => {
+                                const points: Array<[number, number]> = segment.geometry.coordinates.map(([xn,yn]) => {
                                     const x = xn*width;
                                     const y = yn*height; //normalised coords back to scale
                                     return [x,y];
                                 });
-                                
-                                const path = line().curve(curveCardinal)(normPoints);
+
+                                const path = line().curve(curveCardinal)(points);
+                                const [labelcx, labelcy] = points[points.length-1];
+                                const labelText = segment.properties.line_label;
                                 if (!path) return;
                                 return(
-                                    <path key={segment.properties.line_label} d={path} stroke="yellow" strokeWidth={2} fill="none"/>
+                                    <React.Fragment key={labelText}>
+                                        <path key={"path"+ labelText} d={path} stroke="yellow" strokeWidth={2} fill="none"/>
+                                        <circle key={"circle" + labelText} cx={labelcx} cy={labelcy+30} r={20} fill="white" />
+                                        <circle key={"circleend" + labelText} cx={points[0][0]} cy={points[0][1]} r={5} stroke="yellow" strokeWidth={2} fill="yellow"/>
+                                        <text key={"text"+labelText} x={labelcx} y={labelcy+32} textAnchor="middle" dominantBaseline="middle" fontSize="16" fontWeight="bold" fill="black">
+                                            {labelText}
+                                        </text>
+                                    </React.Fragment>
                                 )
                             
                             })}
