@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
 import AddLineModal from "./AddLineModal";
 import { toast } from "sonner";
+import { curveCardinal, line } from "d3-shape";
 
 type ClimbingRoutesProps = {
     areas: ClimbingArea[];
@@ -157,11 +158,13 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 return null;
             }
             if (feature.geometry.type === 'LineString') {
-                const pathD = feature.geometry.coordinates.map(([xn,yn],i) => {
+                
+                const points: Array<[number,number]> = feature.geometry.coordinates.map(([xn,yn]) => {
                     const x = xn*width;
                     const y = yn*height; //normalised coords back to scale
-                    return `${i === 0 ? "M": "L"} ${x}, ${y}`;
-                }).join(" ");
+                    return [x,y];
+                });
+                const pathD = line().curve(curveCardinal)(points);
                 return pathD;
             } else if (feature.geometry.type === 'Point') {
                 toast.error("the line seems to be only a point");
