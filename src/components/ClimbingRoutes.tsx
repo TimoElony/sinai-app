@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo, Feature } from "../types/types";
+import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo} from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
@@ -26,7 +26,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
     const topoRef = useRef<HTMLImageElement[] | null>([]);
-    const [pathDs, setpathDs] = useState<String[][] | null>([]); // an array of strings for each walltopo
+    const [topoLoaded, setTopoLoaded] = useState<boolean[]>([false]);
 
 
     useEffect(() => {
@@ -147,43 +147,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         if (!topoRef.current || !topoRef.current[index] || !topos[index].line_segments || topos[index].line_segments.length < 1) {
             return; //this handler is only important where custom lines have been uploaded
         }
-
-        const  geojson: Feature[] = topos[index].line_segments;
-        const width = topoRef.current[index].width;
-        const height = topoRef.current[index].height;
-
-        const topoPathDs = geojson.map((feature)=>{
-            if(!feature) {
-                console.error("an issue with the uploaded line occured")
-                return null;
-            }
-            if (feature.geometry.type === 'LineString') {
-                
-                const points: Array<[number,number]> = feature.geometry.coordinates.map(([xn,yn]) => {
-                    const x = xn*width;
-                    const y = yn*height; //normalised coords back to scale
-                    return [x,y];
-                });
-                const pathD = line().curve(curveCardinal)(points);
-                return pathD;
-            } else if (feature.geometry.type === 'Point') {
-                toast.error("the line seems to be only a point");
-                return null;
-            } else {
-                toast.error("no familiar geometry detected")
-                return null;
-            }
-        }).filter((pathD): pathD is string=> pathD !== null); //for each topo now only non null strings
-        if (topoPathDs.length < 1) {
-            console.error("topopathDs empty after filtering", topoPathDs);
-            return; //leaving late better than never
-        }
-        console.log(topoPathDs);
-        setpathDs(prev=> { 
-            const newPaths = [...(prev || [])];
-            newPaths[index] = topoPathDs;
-            console.log(newPaths);
-            return newPaths;
+        setTopoLoaded(prev=> {
+            const currentlyLoaded = [...(prev || false)];
+            currentlyLoaded[index] = true;
+            return currentlyLoaded;
         })
 
     }
@@ -277,20 +244,30 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         loading="lazy"
                         onLoad={()=>handleTopoLoaded(index)}
                     />
-                    {pathDs && pathDs[index] && pathDs[index].length > 0 &&
-                    <svg
-                        width={topoRef.current? topoRef.current[index].width : 200}
-                        height={topoRef.current? topoRef.current[index].height : 200}
-                        style={{ position: "absolute" , top: 0, left: 0 }}
-                    >   
-                        {pathDs[index].map((pathD, i)=>{
-                            const path = String(pathD);
-                            console.log(path);
-                            return(
-                                <path key={i} d={path} stroke="yellow" strokeWidth={2} fill="none"/>
-                            )
-                        })}
-                    </svg>
+                    {topo.line_segments && topoLoaded[index] && 
+                        <svg
+                            width={topoRef.current? topoRef.current[index].width : 200}
+                            height={topoRef.current? topoRef.current[index].height : 200}
+                            style={{ position: "absolute" , top: 1, left: 1 }}
+                        >
+                            {topo.line_segments.map((segment)=>{
+                                if (!Array.isArray(segment.geometry.coordinates) || segment.geometry.type === 'Point') return;
+                                const width = topoRef.current ? topoRef.current[index].width : 200;
+                                const height = topoRef.current ? topoRef.current[index].height : 200;
+                                const normPoints: Array<[number, number]> = segment.geometry.coordinates.map(([xn,yn]) => {
+                                    const x = xn*width;
+                                    const y = yn*height; //normalised coords back to scale
+                                    return [x,y];
+                                });
+                                
+                                const path = line().curve(curveCardinal)(normPoints);
+                                if (!path) return;
+                                return(
+                                    <path key={segment.properties.line_label} d={path} stroke="yellow" strokeWidth={2} fill="none"/>
+                                )
+                            
+                            })}
+                        </svg>
                     }
                     </div>
                     <p>{topo.details}</p>

@@ -76,5 +76,9 @@ export type LineString = {
 export type Feature = {
     type: "Feature";
     geometry: Point | LineString;
-    properties: Record<string, any>;
+    properties: {
+      line_label: string;
+      filename: string;
+      topo_id: string;
+    }
 }
