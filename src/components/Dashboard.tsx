@@ -11,6 +11,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { toast } from "sonner";
 
 
 
@@ -35,7 +36,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       fetchAreas();
       fetchTopoPoints();
     } catch(err) {
-      console.error('error fetching areas or points');
+      toast.error('error fetching areas or points');
     }
   },[]);
 
@@ -46,7 +47,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       setAreas(data);
       setProgress(50);
     } catch (error) {
-      console.error("Error fetching areas:", error);
+      console.error("Error fetching areas:", String(error));
+      throw new Error(`Error fetching areas${String(error)}`);
     }
   }
 
@@ -69,7 +71,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       }
 
     } catch (error) { 
-      console.error("Error changing area:", error);
+      toast.error(`Error changing area: ${String(error)}`);
     } finally {
       setLoading(false);
       setProgress(100);
@@ -94,14 +96,14 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       }
     } catch (error) {
       console.error("Error fetching area details:", error);
+      throw new Error("Error fetching area Details");
     }
   };
 
   const fetchRoutesAndTopos = async (areaName: string, cragName: string) => {
     try {
         if (!areaName || !cragName) {
-            console.error("Area name or crag name is not provided");
-            return;
+            throw new Error("Area name or crag name is not provided");
         }
         const response = await fetch(`https://sinai-backend.onrender.com/climbingroutes/${areaName}/${cragName}`);
         const routeData: ClimbingRoute[] = await response.json();
@@ -110,8 +112,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         const topoData: WallTopo[] = await topoResponse.json();
         setTopos(topoData);
     } catch (error) {
-        console.error("Error fetching routes or topos:");
-    } finally {
+      console.error(error);
+      throw new Error("Error fetching routes or topos");
     }
           
   };
@@ -123,7 +125,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
           setTopopoints(data);
           setProgress(80);
         } catch (error) {
-          console.error("Error fetching topo points:", error);
+          console.error(error);
+          throw new Error("error while fetching topo points");
         } finally {
           setLoading(false);
           setProgress(100);
@@ -141,7 +144,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       setProgress(80);
       setSelectedCrag(selectedValue);
     } catch (error) {
-      console.error("Error changing crag:", error);
+      console.error(error);
+      toast.error(`Error changing Crag: ${String(error)}`);
     } finally {
       setLoading(false);
       setProgress(100);

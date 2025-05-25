@@ -60,4 +60,21 @@ export type WallTopo = {
     climbing_routes_ids: string[];
     climbing_area_name: string;
     climbing_sector: string;
+    line_segments: Feature[];
+}
+
+export type Point = {
+    type: "Point";
+    coordinates: [number, number];
+}
+
+export type LineString = {
+    type: "LineString";
+    coordinates: [number, number][];
+}
+
+export type Feature = {
+    type: "Feature";
+    geometry: Point | LineString;
+    properties: Record<string, any>;
 }

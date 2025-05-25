@@ -1,38 +1,43 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo } from "../types/types";
+import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo, Feature } from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
 import AddLineModal from "./AddLineModal";
+import { toast } from "sonner";
 
-export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos, setLoading, setProgress}: 
-    {   areas: ClimbingArea[];
-        selectedArea: string | undefined; 
-        areaDetails: AreaDetails | undefined; 
-        onAreaChange: (selectedValue: string) => void; 
-        sessionToken: string; 
-        selectedCrag: string | undefined; 
-        onCragChange: (selectedValue: string) => void;
-        routes: ClimbingRoute[]; 
-        topos: WallTopo[];
-        setLoading: (arg: boolean)=> void
-        setProgress: (arg: number)=> void}) {
+type ClimbingRoutesProps = {
+    areas: ClimbingArea[];
+    selectedArea: string | undefined; 
+    areaDetails: AreaDetails | undefined; 
+    onAreaChange: (selectedValue: string) => void; 
+    sessionToken: string; 
+    selectedCrag: string | undefined; 
+    onCragChange: (selectedValue: string) => void;
+    routes: ClimbingRoute[]; 
+    topos: WallTopo[];
+    setLoading: (arg: boolean)=> void
+    setProgress: (arg: number)=> void
+};
+
+export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos, setLoading, setProgress}: ClimbingRoutesProps) {
 
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
-    const topoRef = useRef<HTMLImageElement>(null);
+    const topoRef = useRef<HTMLImageElement[] | null>([]);
+    const [pathDs, setpathDs] = useState<String[][] | null>([]); // an array of strings for each walltopo
 
 
     useEffect(() => {
         if (!selectedArea || !areaDetails) {
-            console.log("No area selected or area details not available");
+            toast("No area selected or area details not available");
             return;
         }
         if (selectedArea === selectedCrag) {
-            console.log("Only one crag in this area");
+            toast("Only one crag in this area");
             onCragChange(selectedArea)
         } else {
-            console.log("Multiple crags in this area, selecting first one", areaDetails?.crags[0].name);
+            toast(`Multiple crags in this area, selecting first one ${areaDetails?.crags[0].name}`);
             onCragChange(areaDetails?.crags[0].name);
         }
     },[selectedArea]);
@@ -47,7 +52,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         setFormTopoNumber(0);
         setSelectedRoute(undefined);
         if(!selectedCrag){
-            console.log('no crag selected');
+            toast('no crag selected');
             return;
         }
         onCragChange(selectedCrag);
@@ -76,7 +81,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             });
             console.log(response);  
         } catch (error) {
-            console.error('error removing route from topo', error);
+            toast.error(`error removing route from topo${String(error)}`);
         } finally {
             refresh();
         }
@@ -110,12 +115,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             });
             console.log(response);
             } catch (error) {
-                console.error('error updating topo number', error);
+                toast.error(`error updating topo number: ${String(error)}`);
             } finally {
                 refresh();
             }
         } else {
-            console.log('route does not exist on this topo yet')
+            toast('route does not exist on this topo yet');
             try {
                 const wall_topo_ids_new = [...selectedRoute.wall_topo_ids, topoId];
                 const wall_topo_numbers_new = [...wall_topo_numbers, formTopoNumber];
@@ -130,11 +135,54 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 });
                 console.log(response);
             } catch (error) {
-                console.error('error posting add route to topo')
+                toast.error(`error posting route to topo, try again later or check reason: ${String(error)}`);
             } finally {
                 refresh();
             }
         }
+    }
+
+    function handleTopoLoaded (index: number) {
+        if (!topoRef.current || !topoRef.current[index] || !topos[index].line_segments || topos[index].line_segments.length < 1) {
+            return; //this handler is only important where custom lines have been uploaded
+        }
+
+        const  geojson: Feature[] = topos[index].line_segments;
+        const width = topoRef.current[index].width;
+        const height = topoRef.current[index].height;
+
+        const topoPathDs = geojson.map((feature)=>{
+            if(!feature) {
+                console.error("an issue with the uploaded line occured")
+                return null;
+            }
+            if (feature.geometry.type === 'LineString') {
+                const pathD = feature.geometry.coordinates.map(([xn,yn],i) => {
+                    const x = xn*width;
+                    const y = yn*height; //normalised coords back to scale
+                    return `${i === 0 ? "M": "L"} ${x}, ${y}`;
+                }).join(" ");
+                return pathD;
+            } else if (feature.geometry.type === 'Point') {
+                toast.error("the line seems to be only a point");
+                return null;
+            } else {
+                toast.error("no familiar geometry detected")
+                return null;
+            }
+        }).filter((pathD): pathD is string=> pathD !== null); //for each topo now only non null strings
+        if (topoPathDs.length < 1) {
+            console.error("topopathDs empty after filtering", topoPathDs);
+            return; //leaving late better than never
+        }
+        console.log(topoPathDs);
+        setpathDs(prev=> { 
+            const newPaths = [...(prev || [])];
+            newPaths[index] = topoPathDs;
+            console.log(newPaths);
+            return newPaths;
+        })
+
     }
 
     
@@ -176,7 +224,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             )}
             <h1>Topos</h1>
             {!topos? <></> :
-            topos.map((topo)=> {
+            topos.map((topo, index)=> {
                 const maxWidth = 800;
                 const breakpoints = [400, 600, 800, 1200]; // Your preferred breakpoints
                 const src = "https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/"
@@ -211,15 +259,37 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     {url && 
                         <AddLineModal imageUrl={url} topoId={topo.id} filename={topo.extracted_filename} sessionToken={sessionToken}/>
                     }
+                    <div style={{position:'relative', display: 'inline-block'}}>
                     <img
-                        ref={topoRef}
+                        ref={el => {
+                            if (el && topoRef.current) {
+                                topoRef.current[index] = el;
+                            }
+                        }}
                         src={url}
                         srcSet={srcSet}
                         sizes={`(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}
                         alt={topo.description}
                         style={{ width: '100%', height: 'auto' }}
                         loading="lazy"
+                        onLoad={()=>handleTopoLoaded(index)}
                     />
+                    {pathDs && pathDs[index] && pathDs[index].length > 0 &&
+                    <svg
+                        width={topoRef.current? topoRef.current[index].width : 200}
+                        height={topoRef.current? topoRef.current[index].height : 200}
+                        style={{ position: "absolute" , top: 0, left: 0 }}
+                    >   
+                        {pathDs[index].map((pathD, i)=>{
+                            const path = String(pathD);
+                            console.log(path);
+                            return(
+                                <path key={i} d={path} stroke="yellow" strokeWidth={2} fill="none"/>
+                            )
+                        })}
+                    </svg>
+                    }
+                    </div>
                     <p>{topo.details}</p>
                     <table className="table-auto w-full">
                         <thead>
