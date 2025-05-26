@@ -42,7 +42,8 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
         })
     }
 
-    function handlePathClick(line_label: number) {
+    function handlePathClick(line_label: number, e: React.MouseEvent ) {
+        e.stopPropagation();
         toast(`path ${line_label} clicked`);
         setSelectedPath(line_label);
     }
@@ -90,7 +91,16 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                                                         <circle key={x + y + "controlpoint"} cx={x} cy={y} r={12} fill="none" stroke="red"/>
                                                     )
                                                 })}
-                                                <path key={"path"+ label} d={path} stroke="yellow" strokeWidth={2} fill="none" onClick={()=>handlePathClick(label)}/>
+                                                <path
+                                                    d={path}
+                                                    stroke="transparent"
+                                                    strokeWidth={10} // Wider clickable area
+                                                    fill="none"
+                                                    pointerEvents="visibleStroke" // Make only the stroke clickable
+                                                    onClick={(e) => handlePathClick(label, e)}
+                                                    style={{ cursor: "pointer" }}
+                                                />
+                                                <path key={"path"+ label} d={path} stroke="yellow" strokeWidth={2} fill="none" pointerEvents="none"/>
                                                 <circle key={"circle" + label} cx={labelcx} cy={labelcy+30} r={12} fill="white" />
                                                 <circle key={"circleend" + label} cx={points[0][0]} cy={points[0][1]} r={5} stroke="yellow" strokeWidth={2} fill="yellow"/>
                                                 <text key={"text"+label} x={labelcx} y={labelcy+32} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
