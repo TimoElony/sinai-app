@@ -3,9 +3,8 @@ import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo} from "../types/type
 import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
-import AddLineModal from "./AddLineModal";
 import { toast } from "sonner";
-import { curveCardinal, line } from "d3-shape";
+import InteractiveTopo from "./InteractiveTopo";
 
 type ClimbingRoutesProps = {
     areas: ClimbingArea[];
@@ -26,8 +25,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
     const topoRef = useRef<HTMLImageElement[] | null>([]);
-    const [topoLoaded, setTopoLoaded] = useState<boolean[]>([false]);
-
 
     useEffect(() => {
         if (!selectedArea || !areaDetails) {
@@ -143,18 +140,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         }
     }
 
-    function handleTopoLoaded (index: number) {
-        if (!topoRef.current || !topoRef.current[index] || !topos[index].line_segments || topos[index].line_segments.length < 1) {
-            return; //this handler is only important where custom lines have been uploaded
-        }
-        setTopoLoaded(prev=> {
-            const currentlyLoaded = [...(prev || false)];
-            currentlyLoaded[index] = true;
-            return currentlyLoaded;
-        })
-
-    }
-
     
     // Rendering below:
     // Area Selector
@@ -195,16 +180,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             <h1>Topos</h1>
             {!topos? <></> :
             topos.map((topo, index)=> {
-                const maxWidth = 800;
-                const breakpoints = [400, 600, 800, 1200]; // Your preferred breakpoints
-                const src = "https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/"
-                // Generate srcset with Cloudflare resizing
-                const srcSet = breakpoints
-                  .filter(bp => bp <= maxWidth)
-                  .map(bp => `${src}${topo.extracted_filename}?width=${bp}&format=webp ${bp}w`)
-                  .join(', ');
-
-                const url = `${src}${topo.extracted_filename}?width=${maxWidth}&quality=75&format=webp`;
+                
             return (
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
                     <div className="flex flex-col md:flex-row md:items-center">
@@ -226,59 +202,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                             </div>
                         )}
                     </div>
-                    {url && 
-                        <AddLineModal imageUrl={url} topoId={topo.id} filename={topo.extracted_filename} sessionToken={sessionToken}/>
-                    }
-                    <div style={{position:'relative', display: 'inline-block'}}>
-                    <img
-                        ref={el => {
-                            if (el && topoRef.current) {
-                                topoRef.current[index] = el;
-                            }
-                        }}
-                        src={url}
-                        srcSet={srcSet}
-                        sizes={`(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}
-                        alt={topo.description}
-                        style={{ width: '100%', height: 'auto' }}
-                        loading="lazy"
-                        onLoad={()=>handleTopoLoaded(index)}
-                    />
-                    {topo.line_segments && topoLoaded[index] && 
-                        <svg
-                            width={topoRef.current? topoRef.current[index].width : 200}
-                            height={topoRef.current? topoRef.current[index].height : 200}
-                            style={{ position: "absolute" , top: 1, left: 1 }}
-                        >
-                            {topo.line_segments.map((segment)=>{
-                                if (!Array.isArray(segment.geometry.coordinates) || segment.geometry.type === 'Point') return;
-                                const width = topoRef.current ? topoRef.current[index].width : 200;
-                                const height = topoRef.current ? topoRef.current[index].height : 200;
-                                const points: Array<[number, number]> = segment.geometry.coordinates.map(([xn,yn]) => {
-                                    const x = xn*width;
-                                    const y = yn*height; //normalised coords back to scale
-                                    return [x,y];
-                                });
-
-                                const path = line().curve(curveCardinal)(points);
-                                const [labelcx, labelcy] = points[points.length-1];
-                                const labelText = segment.properties.line_label;
-                                if (!path) return;
-                                return(
-                                    <React.Fragment key={labelText}>
-                                        <path key={"path"+ labelText} d={path} stroke="yellow" strokeWidth={2} fill="none"/>
-                                        <circle key={"circle" + labelText} cx={labelcx} cy={labelcy+30} r={20} fill="white" />
-                                        <circle key={"circleend" + labelText} cx={points[0][0]} cy={points[0][1]} r={5} stroke="yellow" strokeWidth={2} fill="yellow"/>
-                                        <text key={"text"+labelText} x={labelcx} y={labelcy+32} textAnchor="middle" dominantBaseline="middle" fontSize="16" fontWeight="bold" fill="black">
-                                            {labelText}
-                                        </text>
-                                    </React.Fragment>
-                                )
-                            
-                            })}
-                        </svg>
-                    }
-                    </div>
+                    <InteractiveTopo topoRef={topoRef} index={index} topoId={topo.id} filename={topo.extracted_filename} sessionToken={sessionToken} description={topo.description} line_segments={topos[index].line_segments}/>
                     <p>{topo.details}</p>
                     <table className="table-auto w-full">
                         <thead>
