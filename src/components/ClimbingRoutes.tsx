@@ -202,7 +202,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                             </div>
                         )}
                     </div>
-                    <InteractiveTopo topoRef={topoRef} index={index} topoId={topo.id} filename={topo.extracted_filename} sessionToken={sessionToken} description={topo.description} line_segments={topos[index].line_segments}/>
+                    <InteractiveTopo topoRef={topoRef} index={index} topoId={topo.id} filename={topo.extracted_filename} sessionToken={sessionToken} description={topo.description} line_segments={topos[index].line_segments} refresh={refresh}/>
                     <p>{topo.details}</p>
                     <table className="table-auto w-full">
                         <thead>

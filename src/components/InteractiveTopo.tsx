@@ -12,9 +12,10 @@ type InteractiveTopoProps = {
     sessionToken: string;
     description: string;
     line_segments: Feature[];
+    refresh: () => void;
 }
 
-export default function InteractiveTopo({ topoRef, index, topoId, filename, sessionToken, description, line_segments}: InteractiveTopoProps) {
+export default function InteractiveTopo({ topoRef, index, topoId, filename, sessionToken, description, line_segments, refresh}: InteractiveTopoProps) {
     const [topoLoaded, setTopoLoaded] = useState<boolean[]>([false]);
     const [selectedPath, setSelectedPath] = useState<number | undefined>(undefined);
 
@@ -102,7 +103,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                                 </svg>
                             }
                             {url && 
-                                <AddLineModal imageUrl={url} topoId={topoId} filename={filename} sessionToken={sessionToken}/>
+                                <AddLineModal imageUrl={url} topoId={topoId} filename={filename} sessionToken={sessionToken} refresh={refresh}/>
                             }
                             </div>
     )

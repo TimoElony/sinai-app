@@ -17,6 +17,7 @@ type AddLineModalProps = {
     topoId: string;
     filename: string;
     sessionToken: string;
+    refresh: ()=> void;
 }
 
 type PointerOrTouchEvent = React.PointerEvent<HTMLElement>;
@@ -76,7 +77,7 @@ function drawCardinalSpline(ctx: CanvasRenderingContext2D, points: [number, numb
 export type ControlPoint = [number, number];
 
 
-export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken }: AddLineModalProps) {
+export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken, refresh }: AddLineModalProps) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -255,6 +256,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
             }
             const data = await response.json();
             toast.success(data.message);
+            refresh();
         } catch (error) {
             toast.error(String(error));
         }
