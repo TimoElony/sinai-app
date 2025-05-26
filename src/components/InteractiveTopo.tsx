@@ -42,6 +42,14 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
         })
     }
 
+    const handleContainerClick = (e: React.MouseEvent) => {
+        // Check if click was directly on a path element
+        const clickedPath = (e.target as HTMLElement).closest('path');
+        if (!clickedPath) {
+            setSelectedPath(undefined);
+        }
+    };
+
     function handlePathClick(line_label: number, e: React.MouseEvent ) {
         e.stopPropagation();
         toast(`path ${line_label} clicked`);
@@ -49,7 +57,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
     }
 
     return (
-        <div style={{position:'relative', display: 'inline-block'}}>
+        <div style={{position:'relative', display: 'inline-block'}} onClick={handleContainerClick}>
                             <img
                                 ref={el => {
                                     if (el && topoRef.current) {
