@@ -75,7 +75,7 @@ export type LineString = {
 
 export type Feature = {
     type: "Feature";
-    geometry: LineString;
+    geometry: Point | LineString;
     properties: {
       line_label: number;
       filename: string;
