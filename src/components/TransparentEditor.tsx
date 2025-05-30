@@ -20,6 +20,7 @@ type AddLineModalProps = {
     refresh: ()=> void;
 }
 
+type PointerOrTouchEvent = React.PointerEvent<HTMLElement>;
 
 function drawCallout(
   ctx: CanvasRenderingContext2D,
@@ -108,7 +109,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
         ctx.scale(dpr, dpr);
     },[imageReady, imageRef]);
 
-    function handleMouseDown (e: React.PointerEvent<HTMLElement>) {
+    function handleMouseDown (e: PointerOrTouchEvent) {
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
         if(!controlPoints) throw new Error("there is no line to edit, add one")
@@ -133,7 +134,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
 
     }
 
-    function handleMouseMove (e: React.PointerEvent<HTMLElement>) {
+    function handleMouseMove (e: PointerOrTouchEvent) {
         if(!isDragging || nearestIndex === undefined || !canvasRef.current) return;
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
@@ -147,7 +148,7 @@ export default function AddLineModal ({ imageUrl, topoId, filename, sessionToken
         setControlPoints(newPoints);
     }
 
-    function handleMouseUp (e: React.PointerEvent<HTMLElement>) {
+    function handleMouseUp (e: PointerOrTouchEvent) {
         if(!isDragging) return;
         const x = e.nativeEvent.offsetX;
         const y = e.nativeEvent.offsetY;
