@@ -119,6 +119,14 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
         setIsDragging(false);
     }
 
+    function handleCircleLeave (e: React.PointerEvent<SVGCircleElement>) {
+        if(!dimensions) return;
+        if (e.nativeEvent.offsetX > dimensions[0] || e.nativeEvent.offsetX < 0 || e.nativeEvent.offsetY > dimensions[1] || e.nativeEvent.offsetY < 0) {
+            setIsDragging(false);
+        };
+        
+    }
+
     function handleNumberChange (value: string) {
         setModifiedNumber(Number(value));
     }
@@ -204,7 +212,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                                                                 onPointerDown={handleCircleDown}
                                                                 onPointerMove={(e)=>handleCircleMoving(e, i)}
                                                                 onPointerUp={()=>handleCircleUp()}
-                                                                onPointerLeave={()=>handleCircleUp()}
+                                                                onPointerLeave={handleCircleLeave}
                                                             />
                                                         )
                                                     })
