@@ -108,8 +108,6 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
         if (!isDragging || !modifiedPoints) return;
         e.stopPropagation;
         const newPoints = [...modifiedPoints];
-        console.log(newPoints[pointIndex]);
-        console.log(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
         newPoints[pointIndex] = [e.nativeEvent.offsetX, e.nativeEvent.offsetY]
         setModifiedPoints(newPoints);
 
@@ -134,10 +132,11 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
     function handleSubmit (asNew: boolean) {
         try {
             if (!dimensions || !modifiedNumber || !modifiedPoints || !selectedPath) throw new Error("cannot submit like this");
-            submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber, asNew)
-            refresh();
+            submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber, asNew);
         } catch (error) {
             toast.error(String(error))
+        } finally {
+            refresh();
         }
         
     }
@@ -174,7 +173,10 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
         
                                         const path = line().curve(curveCardinal)(points);
                                         const [labelcx, labelcy] = points[points.length-1];
-                                        const label = segment.properties.line_label;
+                                        let label = segment.properties.line_label;
+                                        if (modifiedNumber) {
+                                            label = modifiedNumber;
+                                        }
                                         if (!path) return;
                                         return(
                                             <React.Fragment key={label}>
@@ -188,20 +190,20 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                                                     onClick={(e) => handlePathClick(label, e, points)}
                                                     style={{ cursor: "pointer" }}
                                                 />
-                                                <path key={"path"+ label} d={path} stroke="yellow" strokeWidth={2} fill="none" pointerEvents="none"/>
+                                                <path key={"path"+ label + topoId} d={path} stroke="yellow" strokeWidth={2} fill="none" pointerEvents="none"/>
                                                 <circle key={"circle" + label} cx={labelcx} cy={labelcy+30} r={12} fill="white" />
                                                 <circle key={"circleend" + label} cx={points[0][0]} cy={points[0][1]} r={5} stroke="yellow" strokeWidth={2} fill="yellow"/>
                                                 <text key={"text"+label} x={labelcx} y={labelcy+32} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
                                                     {label}
                                                 </text>
                                                 {modifiedPoints &&
-                                                    <path key={"modifiedPath"+ label} d={line().curve(curveCardinal)(modifiedPoints) || ""} stroke="red" strokeWidth={1} fill="none" pointerEvents="none"/>
+                                                    <path key={"modifiedPath"+ label + topoId} d={line().curve(curveCardinal)(modifiedPoints) || ""} stroke="red" strokeWidth={1} fill="none" pointerEvents="none"/>
                                                 }
                                                 {selectedPath===label && modifiedPoints &&
                                                     modifiedPoints.map(([x,y],i) => {
                                                         return (
                                                             <circle 
-                                                                key={`controlpoint-${i}`} 
+                                                                key={`controlpoint-${i}-${topoId}`} 
                                                                 cx={x} 
                                                                 cy={y} 
                                                                 r={15} 
@@ -225,9 +227,9 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                             }
                             {modifiedNumber &&
                                 <>
-                                <Button onClick={()=>handleSubmit(false)}>Submit Changes</Button>
-                                <Button onClick={()=>handleSubmit(true)}>Upload as new</Button>
-                                <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200" type="number" value={modifiedNumber.toString()} onChange={(e)=>handleNumberChange(e.target.value)} onBlur={(e)=>handleNumberChange(e.target.value)}/>
+                                <Button className="m-2" onClick={()=>handleSubmit(false)}>Submit Changes</Button>
+                                <Button className="m-2" onClick={()=>handleSubmit(true)}>Upload as new</Button>
+                                <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber.toString()} onChange={(e)=>handleNumberChange(e.target.value)} onBlur={(e)=>handleNumberChange(e.target.value)}/>
                                 </>
                             }
                             </div>
