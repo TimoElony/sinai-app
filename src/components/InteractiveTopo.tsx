@@ -233,7 +233,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                             {sessionToken &&
                                 <>
                                 <Button className="m-2" onClick={()=>handleSubmit()}>Submit Changes</Button>
-                                <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber.toString()} onChange={(e)=>handleNumberChange(e.target.value)}/>
+                                <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber?.toString()|| 0} onChange={(e)=>handleNumberChange(e.target.value)}/>
                                 </>
                             }
                             </div>

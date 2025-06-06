@@ -47,14 +47,14 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         console.log('selected area', selectedArea);
     };
 
-    const refresh = () => {
+    const refresh = async () => {
         setFormTopoNumber(0);
         setSelectedRoute(undefined);
         if(!selectedCrag){
             toast('no crag selected');
             return;
         }
-        onCragChange(selectedCrag);
+        await onCragChange(selectedCrag);
     }
     
 
