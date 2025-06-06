@@ -16,8 +16,11 @@ type InteractiveTopoProps = {
     refresh: () => void;
 }
 
-async function submitLine (width: number, height: number, offsetPoints: Array<[number, number]>, topoId: string, filename: string, lineLabel: number, sessionToken: string, modifiedLabel: number, asNew: boolean) {
-        if(asNew && modifiedLabel == lineLabel) throw new Error("this line label already exists")
+async function submitLine (width: number, height: number, offsetPoints: Array<[number, number]>, topoId: string, filename: string, lineLabel: number, sessionToken: string, modifiedLabel: number) {
+        let asNew = true;
+        if(modifiedLabel == lineLabel) {
+            asNew = false;
+        }
         const normalizedPoints = offsetPoints.map((point)=>[point[0]/width, point[1]/height]);
         const geoJsonFeature = {
             type: "Feature",
@@ -82,13 +85,15 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
     }
 
     const handleContainerClick = (e: React.MouseEvent) => {
+        e.preventDefault;
+        //disabled to properly enable interaction with buttons
         // Check if click was directly on a path element
-        const clickedPath = (e.target as HTMLElement).closest('path');
-         const clickedCircle = (e.target as HTMLElement).closest('circle');
-        if (!clickedPath && !clickedCircle) {
-            setSelectedPath(undefined);
-            setModifiedPoints(null);
-        }
+        // const clickedPath = (e.target as HTMLElement).closest('path');
+        // const clickedCircle = (e.target as HTMLElement).closest('circle');
+        // if (!clickedPath && !clickedCircle) {
+        //     setSelectedPath(undefined);
+        //     setModifiedPoints(null);
+        // }
     };
 
     function handlePathClick(line_label: number, e: React.MouseEvent, pointsToEdit: Array<[number, number]>) {
@@ -126,13 +131,16 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
     }
 
     function handleNumberChange (value: string) {
+        if (!value) {
+            setModifiedNumber(0);
+        }
         setModifiedNumber(Number(value));
     }
 
-    function handleSubmit (asNew: boolean) {
+    function handleSubmit () {
         try {
             if (!dimensions || !modifiedNumber || !modifiedPoints || !selectedPath) throw new Error("cannot submit like this");
-            submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber, asNew);
+            submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber);
         } catch (error) {
             toast.error(String(error))
         } finally {
@@ -174,12 +182,9 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                                         const path = line().curve(curveCardinal)(points);
                                         const [labelcx, labelcy] = points[points.length-1];
                                         let label = segment.properties.line_label;
-                                        if (modifiedNumber) {
-                                            label = modifiedNumber;
-                                        }
                                         if (!path) return;
                                         return(
-                                            <React.Fragment key={label}>
+                                            <React.Fragment key={`route-${label}`}>
                                                 
                                                 <path
                                                     d={path}
@@ -225,11 +230,10 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                                     })}
                                 </svg>
                             }
-                            {modifiedNumber &&
+                            {sessionToken &&
                                 <>
-                                <Button className="m-2" onClick={()=>handleSubmit(false)}>Submit Changes</Button>
-                                <Button className="m-2" onClick={()=>handleSubmit(true)}>Upload as new</Button>
-                                <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber.toString()} onChange={(e)=>handleNumberChange(e.target.value)} onBlur={(e)=>handleNumberChange(e.target.value)}/>
+                                <Button className="m-2" onClick={()=>handleSubmit()}>Submit Changes</Button>
+                                <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber.toString()} onChange={(e)=>handleNumberChange(e.target.value)}/>
                                 </>
                             }
                             </div>

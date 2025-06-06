@@ -134,6 +134,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   }
 
   const handleCragChange = async (selectedValue: string) => {
+    setSelectedCrag(undefined);
     setLoading(true);
     setProgress(50);
     try {
@@ -142,13 +143,13 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       }
       await fetchRoutesAndTopos(selectedArea, selectedValue);
       setProgress(80);
-      setSelectedCrag(selectedValue);
     } catch (error) {
       console.error(error);
       toast.error(`Error changing Crag: ${String(error)}`);
     } finally {
       setLoading(false);
       setProgress(100);
+      setSelectedCrag(selectedValue);
     }
     
   }

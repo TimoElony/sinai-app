@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import UploadTopoModal from "./UploadTopoModal";
 import { toast } from "sonner";
 import InteractiveTopo from "./InteractiveTopo";
+import { Input } from "./ui/input";
 
 type ClimbingRoutesProps = {
     areas: ClimbingArea[];
@@ -183,7 +184,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 
             return (
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
-                    <div className="flex flex-col md:flex-row md:items-center">
+                    <div className="flex flex-col lg:flex-row md:items-center">
                         <h2 >{topo.description}</h2>
                         
                         { sessionToken && (
@@ -192,9 +193,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                                     <option value=" ">Select route to add</option>
                                     {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
                                 </select>
-                                <label htmlFor="topoNumber" className="p-2"># in Topo
-                                <input  className="bg-accent w-8 h-8 mx-2 text-lg text-center" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
-                                </label>
+                                <Input  className="p-2 bg-amber-200 max-w-20 mx-2" id="topoNumber" type="number" value={formTopoNumber.toString()} onChange={(e)=>setFormTopoNumber(+e.target.value)}/>
                                 <div className="flex flex-row gap-2">
                                     <Button onClick={()=>addRouteToTopo(topo.id)}>add/edit route</Button>
                                     <Button className="bg-red-600" onClick={()=>removeRouteFromTopo(topo.id)}>remove</Button>
