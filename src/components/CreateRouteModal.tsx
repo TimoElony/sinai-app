@@ -87,7 +87,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
     return( 
         <Dialog>
             <DialogTrigger asChild><Button>Add route to this crag</Button></DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                 <DialogTitle>Create new route</DialogTitle>
                 </DialogHeader>
