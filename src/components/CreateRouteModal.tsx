@@ -54,15 +54,6 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
         setProgress(50);
         console.log("Form submitted:", values);
         const {name, grade, length, bolts, info, area, crag, setters} = values;
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("grade", grade);
-        formData.append("length", length.toString());
-        formData.append("bolts", bolts.toString());
-        formData.append("info", info);
-        formData.append("area", area);
-        formData.append("crag", crag);
-        formData.append("setters", setters);
 
         try {
             const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/new', {
@@ -71,8 +62,17 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${sessionToken}`,
                     },
-                    body: formData,
-                });
+                    body: JSON.stringify({
+                        name,
+                        grade,
+                        length,
+                        bolts,
+                        info,
+                        area,
+                        crag,
+                        setters,
+                    }),
+            });
             const data = await response.json();
             console.log("Route added:", data);
         } catch (error) {
