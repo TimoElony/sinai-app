@@ -126,7 +126,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                                 <FormItem>
                                     <FormLabel>Route Length</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="Route Length" {...field} />
+                                        <Input type="number" placeholder="Route Length" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -139,7 +139,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                                 <FormItem>
                                     <FormLabel>Route Bolts</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="Route Bolts" {...field} />
+                                        <Input type="number" placeholder="Route Bolts" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
