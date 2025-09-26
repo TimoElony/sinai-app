@@ -152,6 +152,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
             setModifiedPoints(null);
             setModifiedNumber(undefined);
             refresh();
+            refresh();
         }
         
     }
