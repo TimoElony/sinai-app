@@ -4,7 +4,6 @@ import { curveCardinal, line } from "d3-shape";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { set } from "react-hook-form";
 
 type InteractiveTopoProps = {
     topoRef: RefObject<HTMLImageElement[] | null>;
