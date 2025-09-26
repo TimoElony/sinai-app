@@ -182,11 +182,8 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
         try {
             if (!dimensions) throw new Error("topo not loaded yet");
             if (freshLine) {
-                setModifiedPoints(normalizedPointsPrototype.map(([x,y])=>([x*dimensions[0],y*dimensions[1]])));
-                if (!modifiedPoints) throw new Error("there is no modified points");
-                await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, 0, sessionToken, modifiedNumber || 0);
+                await submitLine(1, 1, normalizedPointsPrototype, topoId, filename, 99, sessionToken, 99);
                 await refresh();
-                return;
             }
             if (!modifiedPoints || selectedPath === undefined) throw new Error("either no path selected or no modified points");
             await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber || 0, deleting);
