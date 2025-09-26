@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo} from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import UploadTopoModal from "./UploadTopoModal";
 import { toast } from "sonner";
 import InteractiveTopo from "./InteractiveTopo";
 import { Input } from "./ui/input";
 import RouteDetailsModal from "./RouteDetailsModal";
+import { Label } from "@/components/ui/label";
 
 type ClimbingRoutesProps = {
     areas: ClimbingArea[];
@@ -26,6 +28,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
 
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
+    const [changeRoutesNotLines, setChangeRoutesNotLines] = useState<boolean>(true);
     const topoRef = useRef<HTMLImageElement[] | null>([]);
 
     useEffect(() => {
@@ -149,7 +152,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     // Topos repeater and adding. editing and removing options when logged in
     return (
         <div className="flex flex-col items-baseline gap-4 p-2 md:p-4">
-            <h3>Select Area you want to see Routes of</h3>
+            <h3>Select Area you want to see Topos of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
                 {areas.map((area) => {
@@ -187,9 +190,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
                     <div className="flex flex-col lg:flex-row md:items-center">
                         <h2 >{topo.description}</h2>
-                        
                         { sessionToken && (
                             <div className="flex flex-col md:flex-row md:items-center bg-gray-200 rounded-lg gap-2 mx-1 p-2">
+                                <Switch id="routesInTopo" checked={changeRoutesNotLines} onCheckedChange={()=>setChangeRoutesNotLines(!changeRoutesNotLines)}/>
+                                <Label htmlFor="routesInTopo">{changeRoutesNotLines?"Routes interface":"Line interface"}</Label>
                                 <select className="p-2 bg-white rounded-lg" value={selectedRoute?.id || " "} onChange={(e)=>setSelectedRoute(routes.find(route=>route.id === e.target.value))}>
                                     <option value=" ">Select route to add</option>
                                     {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
@@ -202,7 +206,16 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                             </div>
                         )}
                     </div>
-                    <InteractiveTopo topoRef={topoRef} index={index} topoId={topo.id} filename={topo.extracted_filename} sessionToken={sessionToken} description={topo.description} line_segments={topos[index].line_segments} refresh={refresh}/>
+                    <InteractiveTopo 
+                        changeRoutesNotLines={changeRoutesNotLines}
+                        topoRef={topoRef} 
+                        index={index} 
+                        topoId={topo.id} 
+                        filename={topo.extracted_filename} 
+                        sessionToken={sessionToken} 
+                        description={topo.description} 
+                        line_segments={topos[index].line_segments} 
+                        refresh={refresh}/>
                     <p>{topo.details}</p>
                     <table className="table-auto w-full">
                         <thead>

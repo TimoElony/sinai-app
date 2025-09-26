@@ -4,8 +4,10 @@ import { curveCardinal, line } from "d3-shape";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 type InteractiveTopoProps = {
+    changeRoutesNotLines: boolean;
     topoRef: RefObject<HTMLImageElement[] | null>;
     index: number;
     topoId: string;
@@ -55,7 +57,7 @@ async function submitLine (width: number, height: number, offsetPoints: Array<[n
         }
     }
 
-export default function InteractiveTopo({ topoRef, index, topoId, filename, sessionToken, description, line_segments, refresh}: InteractiveTopoProps) {
+export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, topoId, filename, sessionToken, description, line_segments, refresh}: InteractiveTopoProps) {
     const [topoLoaded, setTopoLoaded] = useState(false);
     const [selectedPath, setSelectedPath] = useState<number | undefined>(undefined);
     const [modifiedPoints, setModifiedPoints] = useState<Array<[number, number]> | null>(null);
@@ -237,10 +239,11 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
                                     })}
                                 </svg>
                             }
-                            {sessionToken &&
+                            {sessionToken && !changeRoutesNotLines &&
                                 <>
-                                <Button className="m-2" onClick={()=>handleSubmit()}>Submit Changes</Button>
+                                <Button className="m-2" onClick={()=>handleSubmit()}>Upload Line Edit</Button>
                                 <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber?.toString()|| 0} onChange={(e)=>handleNumberChange(e.target.value)}/>
+                                <Label htmlFor="lineLabel" className="text-sm">Change line number before submitting if needed</Label>
                                 </>
                             }
                             </div>
