@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Button } from "./ui/button";
 
 
 interface RouteDetailsProps {
@@ -25,7 +26,7 @@ export default function RouteDetailsModal({name, grade, length, bolts, pitches, 
   
   return(
     <Dialog>
-    <DialogTrigger>{name}&#128712;</DialogTrigger>
+    <DialogTrigger><Button>{name}</Button></DialogTrigger>
     <DialogContent>
         <DialogHeader>
         <DialogTitle>{name}</DialogTitle>
