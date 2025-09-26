@@ -6,6 +6,7 @@ import UploadTopoModal from "./UploadTopoModal";
 import { toast } from "sonner";
 import InteractiveTopo from "./InteractiveTopo";
 import { Input } from "./ui/input";
+import RouteDetailsModal from "./RouteDetailsModal";
 
 type ClimbingRoutesProps = {
     areas: ClimbingArea[];
@@ -217,7 +218,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         return (
                             <tr key={route.id} className="hover:bg-gray-200">
                                 <td>{route.wall_topo_numbers[route.wall_topo_ids.indexOf(topo.id)] || "n.n."}</td>
-                                <td className="font-bold">{route.name}</td>
+                                <td className="font-bold"><RouteDetailsModal name={route.name} grade={route.grade_best_guess} faGrade={route.fa_grade} length={route.length} bolts={route.bolts} pitches={route.pitches} description={route.plain_description} approach={route.approach} descent={route.descent} credit={"FA by "+route.setters+". Date: " + route.fa_day+"/"+route.fa_month+"/"+route.fa_year}/></td>
                                 <td className="text-end">{route.grade_best_guess}</td>
                                 <td className="text-end">{route.length}m</td>
                             </tr>
