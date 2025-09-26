@@ -182,7 +182,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
         try {
             if (!dimensions) throw new Error("topo not loaded yet");
             if (freshLine) {
-                await submitLine(dimensions[0], dimensions[1], normalizedPointsPrototype, topoId, filename, 0, sessionToken, modifiedNumber || 0);
+                await submitLine(dimensions[0], dimensions[1], normalizedPointsPrototype.map(([x,y])=>([x*dimensions[0],y*dimensions[1]])), topoId, filename, 0, sessionToken, modifiedNumber || 0);
                 await refresh();
                 return;
             }
