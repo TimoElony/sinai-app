@@ -147,9 +147,11 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
         } catch (error) {
             toast.error(String(error))
         } finally {
-            refresh();
             setIsEditing(false);
             setSelectedPath(undefined);
+            setModifiedPoints(null);
+            setModifiedNumber(undefined);
+            refresh();
         }
         
     }
