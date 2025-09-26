@@ -18,7 +18,42 @@ type InteractiveTopoProps = {
     refresh: () => void;
 }
 
-async function submitLine (width: number, height: number, offsetPoints: Array<[number, number]>, topoId: string, filename: string, lineLabel: number, sessionToken: string, modifiedLabel: number) {
+const normalizedPointsPrototype: [number,number][]= [
+    [
+        0.7164793429167375,
+        0.06345325119573901
+    ],
+    [
+        0.7432809912640116,
+        0.12423048895401186
+    ],
+    [
+        0.7477479188338572,
+        0.2002021088757176
+    ],
+    [
+        0.7492369776186736,
+        0.27807307780512075
+    ],
+    [
+        0.6961111280653212,
+        0.47898935088029143
+    ],
+    [
+        0.6513888888888889,
+        0.5676713767626607
+    ],
+    [
+        0.6256514424863069,
+        0.7187083755043598
+    ],
+    [
+        0.5928939321766729,
+        0.8839466220584651
+    ]
+];
+
+async function submitLine (width: number, height: number, offsetPoints: Array<[number, number]>, topoId: string, filename: string, lineLabel: number, sessionToken: string, modifiedLabel: number, deleting = false) {
         let asNew = true;
         if(modifiedLabel == lineLabel) {
             asNew = false;
@@ -29,7 +64,8 @@ async function submitLine (width: number, height: number, offsetPoints: Array<[n
             properties: {
                 topo_id: topoId,
                 file_name: filename,
-                line_label: modifiedLabel
+                line_label: modifiedLabel,
+                deleting: deleting
             },
             geometry: {
                 type: "LineString",
@@ -142,10 +178,16 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
         setModifiedNumber(Number(value));
     }
 
-    async function handleSubmit () {
+    async function handleButtons (freshLine = false, deleting = false) {
         try {
-            if (!dimensions || !modifiedNumber || !modifiedPoints || !selectedPath) throw new Error("cannot submit like this");
-            await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber);
+            if (!dimensions) throw new Error("topo not loaded yet");
+            if (freshLine) {
+                await submitLine(dimensions[0], dimensions[1], normalizedPointsPrototype, topoId, filename, 0, sessionToken, modifiedNumber || 0);
+                await refresh();
+                return;
+            }
+            if (!modifiedNumber || !modifiedPoints || !selectedPath) throw new Error("cannot submit like this");
+            await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber, deleting);
             await refresh();
         } catch (error) {
             toast.error(String(error))
@@ -204,7 +246,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                                                     onClick={(e) => handlePathClick(label, e, points)}
                                                     style={{ cursor: "pointer" }}
                                                 />
-                                                <path key={"path"+ label + topoId} d={path} stroke="yellow" strokeWidth={2} fill="none" pointerEvents="none"/>
+                                                <path key={"path"+ label + topoId} d={path} stroke={segment.properties.deleting?"gray":"yellow"} strokeWidth={segment.properties.deleting?1:2} fill="none" pointerEvents="none"/>
                                                 <circle key={"circle" + label} cx={labelcx} cy={labelcy+20} r={12} fill="white" />
                                                 <circle key={"circleend" + label} cx={points[0][0]} cy={points[0][1]} r={5} stroke="yellow" strokeWidth={2} fill="yellow"/>
                                                 <text key={"text"+label} x={labelcx} y={labelcy+22} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
@@ -241,7 +283,9 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                             }
                             {sessionToken && !changeRoutesNotLines &&
                                 <>
-                                <Button className="m-2" onClick={()=>handleSubmit()}>Upload Line Edit</Button>
+                                <Button className="m-2" onClick={()=>handleButtons()}>Upload Line Edit</Button>
+                                <Button className="m-2" variant="outline" onClick={()=>handleButtons(true)}>Fresh Line</Button>
+                                <Button className="m-2" variant="destructive" onClick={()=>handleButtons(false, true)}>Delete Line</Button>
                                 <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber?.toString()|| 0} onChange={(e)=>handleNumberChange(e.target.value)}/>
                                 <Label htmlFor="lineLabel" className="text-sm">Change line number before submitting if needed</Label>
                                 </>

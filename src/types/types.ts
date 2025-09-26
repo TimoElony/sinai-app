@@ -80,5 +80,6 @@ export type Feature = {
       line_label: number;
       filename: string;
       topo_id: string;
+      deleting: boolean;
     }
 }
