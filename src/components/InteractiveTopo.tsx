@@ -205,9 +205,9 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                                                     style={{ cursor: "pointer" }}
                                                 />
                                                 <path key={"path"+ label + topoId} d={path} stroke="yellow" strokeWidth={2} fill="none" pointerEvents="none"/>
-                                                <circle key={"circle" + label} cx={labelcx} cy={labelcy+30} r={12} fill="white" />
+                                                <circle key={"circle" + label} cx={labelcx} cy={labelcy+20} r={12} fill="white" />
                                                 <circle key={"circleend" + label} cx={points[0][0]} cy={points[0][1]} r={5} stroke="yellow" strokeWidth={2} fill="yellow"/>
-                                                <text key={"text"+label} x={labelcx} y={labelcy+32} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
+                                                <text key={"text"+label} x={labelcx} y={labelcy+22} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
                                                     {label}
                                                 </text>
                                                 {modifiedPoints &&
