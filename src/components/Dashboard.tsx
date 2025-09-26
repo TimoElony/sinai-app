@@ -160,7 +160,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full p-2">
         <TabsList className="grid w-full grid-cols-3 min-h-15">
           <TabsTrigger value="areas" className="w-[100%]">Areas</TabsTrigger>
-          <TabsTrigger value="routes" className="w-[100%]">Routes</TabsTrigger>
+          <TabsTrigger value="routes" className="w-[100%]">Topos</TabsTrigger>
           <TabsTrigger value="map" className="w-[100%]">Map</TabsTrigger>
         </TabsList>
         <TabsContent value="areas">
