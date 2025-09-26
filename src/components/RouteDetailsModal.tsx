@@ -26,7 +26,7 @@ export default function RouteDetailsModal({name, grade, length, bolts, pitches, 
   
   return(
     <Dialog>
-    <DialogTrigger><Button>{name}</Button></DialogTrigger>
+    <DialogTrigger><Button variant="link">{name}</Button></DialogTrigger>
     <DialogContent>
         <DialogHeader>
         <DialogTitle>{name}</DialogTitle>
