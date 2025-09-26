@@ -185,7 +185,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
 
     async function handleButtons (freshLine = false, deleting = false) {
         try {
-            handleTopoLoad(index, freshLine);
+            await handleTopoLoad(index, freshLine);
             if (!dimensions) throw new Error("topo not loaded into editor by admin yet");
             if (freshLine) {
                 setModifiedPoints(normalizedPointsPrototype.map(([x,y])=>([x*dimensions[0],y*dimensions[1]])));
