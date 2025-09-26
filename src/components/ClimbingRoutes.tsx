@@ -188,7 +188,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 
             return (
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
-                    <div className="flex flex-col lg:flex-row md:items-center">
+                    <div className="flex flex-col lg:flex-row lg:items-center">
                         <h2 >{topo.description}</h2>
                         { sessionToken && (
                         <>
