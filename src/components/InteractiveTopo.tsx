@@ -183,6 +183,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
             if (freshLine) {
                 await submitLine(1, 1, normalizedPointsPrototype, topoId, filename, 99, sessionToken, 99);
                 await refresh();
+                return;
             }
             if (!dimensions) throw new Error("topo not loaded into editor yet");
             if (!modifiedPoints || selectedPath === undefined) throw new Error("either no path selected or no modified points");
