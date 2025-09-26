@@ -183,7 +183,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
             if (freshLine) {
                 await submitLine(1, 1, normalizedPointsPrototype, topoId, filename, 99, sessionToken, 99);
                 await refresh();
-                return;
+                throw new Error("fresh line submitted, but change sector back and forth to view it");
             }
             if (!dimensions) throw new Error("topo not loaded into editor yet");
             if (!modifiedPoints || selectedPath === undefined) throw new Error("either no path selected or no modified points");
@@ -284,12 +284,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                             {sessionToken && !changeRoutesNotLines &&
                                 <>
                                 <Button className="m-2" onClick={()=>handleButtons()}>Upload Line Edit</Button>
-                                <Button className="m-2" variant="outline" onClick={async ()=>{
-                                    await handleButtons(true);
-                                    await refresh();
-                                    return;
-                                }
-                                }>Fresh Line</Button>
+                                <Button className="m-2" variant="outline" onClick={()=>handleButtons(true)}>Fresh Line</Button>
                                 <Button className="m-2" variant="destructive" onClick={()=>handleButtons(false, true)}>Delete Line</Button>
                                 <Input aria-label="number of the line" id="lineLabel" className="p-2 bg-amber-200 max-w-20 mx-2" type="number" value={modifiedNumber?.toString()|| 0} onChange={(e)=>handleNumberChange(e.target.value)}/>
                                 <Label htmlFor="lineLabel" className="text-sm">Change line number before submitting if needed</Label>
