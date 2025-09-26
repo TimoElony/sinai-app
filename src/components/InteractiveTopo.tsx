@@ -119,6 +119,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
         if (freshRoute) {
             setDimensions([topoRef.current[index].width,topoRef.current[index].height]);
             setTopoLoaded(true);
+            return;
         }
         if (!line_segments || line_segments.length < 1) {
             return; //only draw svg lines where they have been uploaded
@@ -188,7 +189,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
             await handleTopoLoad(index, freshLine);
             if (!dimensions) throw new Error("topo not loaded into editor by admin yet");
             if (freshLine) {
-                setModifiedPoints(normalizedPointsPrototype.map(([x,y])=>([x*dimensions[0],y*dimensions[1]])));
+                await setModifiedPoints(normalizedPointsPrototype.map(([x,y])=>([x*dimensions[0],y*dimensions[1]])));
                 if (!modifiedPoints) throw new Error("there is no modified points");
                 await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, 0, sessionToken, modifiedNumber || 0);
                 await refresh();
