@@ -140,10 +140,11 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
         setModifiedNumber(Number(value));
     }
 
-    function handleSubmit () {
+    async function handleSubmit () {
         try {
             if (!dimensions || !modifiedNumber || !modifiedPoints || !selectedPath) throw new Error("cannot submit like this");
-            submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber);
+            await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber);
+            await refresh();
         } catch (error) {
             toast.error(String(error))
         } finally {
@@ -151,8 +152,6 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
             setSelectedPath(undefined);
             setModifiedPoints(null);
             setModifiedNumber(undefined);
-            refresh();
-            refresh();
         }
         
     }
