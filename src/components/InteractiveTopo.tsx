@@ -114,14 +114,8 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     const url = `${src}${filename}?width=${maxWidth}&quality=75&format=webp`;
 
 
-    function handleTopoLoad (index: number, freshRoute = false) {
-        if (!topoRef.current || !topoRef.current[index]) return;
-        if (freshRoute) {
-            setDimensions([topoRef.current[index].width,topoRef.current[index].height]);
-            setTopoLoaded(true);
-            return;
-        }
-        if (!line_segments || line_segments.length < 1) {
+    function handleTopoLoad (index: number) {
+        if (!topoRef.current || !topoRef.current[index] || !line_segments || line_segments.length < 1) {
             return; //only draw svg lines where they have been uploaded
         }
         setDimensions([topoRef.current[index].width,topoRef.current[index].height]);
@@ -186,12 +180,11 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
 
     async function handleButtons (freshLine = false, deleting = false) {
         try {
-            await handleTopoLoad(index, freshLine);
-            if (!dimensions) throw new Error("topo not loaded into editor by admin yet");
             if (freshLine) {
                 await submitLine(1, 1, normalizedPointsPrototype, topoId, filename, 99, sessionToken, 99);
                 await refresh();
             }
+            if (!dimensions) throw new Error("topo not loaded into editor yet");
             if (!modifiedPoints || selectedPath === undefined) throw new Error("either no path selected or no modified points");
             await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber || 0, deleting);
             await refresh();
