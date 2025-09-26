@@ -4,6 +4,7 @@ import { curveCardinal, line } from "d3-shape";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { set } from "react-hook-form";
 
 type InteractiveTopoProps = {
     topoRef: RefObject<HTMLImageElement[] | null>;
@@ -61,6 +62,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
     const [modifiedPoints, setModifiedPoints] = useState<Array<[number, number]> | null>(null);
     const [modifiedNumber, setModifiedNumber] = useState<number | undefined>(undefined);
     const [isDragging, setIsDragging] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [dimensions, setDimensions] = useState<[number, number] | null>(null);
 
     const maxWidth = 800;
@@ -97,6 +99,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
     };
 
     function handlePathClick(line_label: number, e: React.MouseEvent, pointsToEdit: Array<[number, number]>) {
+        if (isEditing) return;
         e.stopPropagation();
         toast(`path ${line_label} clicked`);
         setSelectedPath(line_label);
@@ -107,6 +110,7 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
     function handleCircleDown(e: React.PointerEvent<SVGCircleElement>) {
         e.stopPropagation;
         setIsDragging(true);
+        setIsEditing(true);
     }
 
     function handleCircleMoving(e: React.PointerEvent<SVGCircleElement>, pointIndex: number) {
@@ -145,6 +149,8 @@ export default function InteractiveTopo({ topoRef, index, topoId, filename, sess
             toast.error(String(error))
         } finally {
             refresh();
+            setIsEditing(false);
+            setSelectedPath(undefined);
         }
         
     }
