@@ -188,7 +188,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                 await refresh();
                 return;
             }
-            if (!modifiedPoints || !selectedPath) throw new Error("either no path selected or no modified points");
+            if (!modifiedPoints || selectedPath === undefined) throw new Error("either no path selected or no modified points");
             await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber || 0, deleting);
             await refresh();
         } catch (error) {
