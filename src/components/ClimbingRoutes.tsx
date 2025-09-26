@@ -190,10 +190,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
                     <div className="flex flex-col lg:flex-row md:items-center">
                         <h2 >{topo.description}</h2>
-                        { sessionToken && (
+                        <Switch id="routesInTopo" checked={changeRoutesNotLines} onCheckedChange={()=>setChangeRoutesNotLines(!changeRoutesNotLines)}/>
+                        <Label htmlFor="routesInTopo">{changeRoutesNotLines?"Routes interface":"Line interface"}</Label>   
+                        { sessionToken && changeRoutesNotLines && (
                             <div className="flex flex-col md:flex-row md:items-center bg-gray-200 rounded-lg gap-2 mx-1 p-2">
-                                <Switch id="routesInTopo" checked={changeRoutesNotLines} onCheckedChange={()=>setChangeRoutesNotLines(!changeRoutesNotLines)}/>
-                                <Label htmlFor="routesInTopo">{changeRoutesNotLines?"Routes interface":"Line interface"}</Label>
                                 <select className="p-2 bg-white rounded-lg" value={selectedRoute?.id || " "} onChange={(e)=>setSelectedRoute(routes.find(route=>route.id === e.target.value))}>
                                     <option value=" ">Select route to add</option>
                                     {routes.map((route)=><option key={route.id} value={route.id}>{route.name}</option>)}
