@@ -15,8 +15,7 @@ type ClimbingRoutesProps = {
     selectedArea: string | undefined; 
     areaDetails: AreaDetails | undefined; 
     onAreaChange: (selectedValue: string) => void; 
-    sessionToken: string;
-    user: string; 
+    sessionToken: string; 
     selectedCrag: string | undefined; 
     onCragChange: (selectedValue: string) => void;
     routes: ClimbingRoute[]; 
@@ -25,7 +24,7 @@ type ClimbingRoutesProps = {
     setProgress: (arg: number)=> void
 };
 
-export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, user, selectedCrag, onCragChange, routes, topos, setLoading, setProgress}: ClimbingRoutesProps) {
+export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos, setLoading, setProgress}: ClimbingRoutesProps) {
 
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
@@ -80,7 +79,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${sessionToken}`,
-                    'X-User': user,
                 },
                 body: JSON.stringify(payload),
             });
@@ -115,7 +113,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${sessionToken}`,
-                    'X-User': user,
                 },
                 body: JSON.stringify(payload),
             });
@@ -136,7 +133,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${sessionToken}`,
-                        'X-User': user,
                     },
                     body: JSON.stringify(payload),
                 });
@@ -221,7 +217,6 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         topoId={topo.id} 
                         filename={topo.extracted_filename} 
                         sessionToken={sessionToken} 
-                        user={user}
                         description={topo.description} 
                         line_segments={topos[index].line_segments} 
                         refresh={refresh}/>

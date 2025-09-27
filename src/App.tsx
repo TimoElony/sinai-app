@@ -7,14 +7,13 @@ import { Toaster } from './components/ui/sonner.tsx';
 
 function App() {
   const [sessionToken, setSessionToken] = useState<string>('');
-  const [user, setUser] = useState<string>('');
   return (
     <div className="min-h-screen min-w-screen flex flex-col gap-4 bg-gray-100">
       <header>
-        <Login loggedIn={!(sessionToken==='')} setSessionToken={setSessionToken} setUser={setUser}/>
+        <Login loggedIn={!(sessionToken==='')} setSessionToken={setSessionToken}/>
       </header>
       <main className='lg:w-3xl lg:mx-auto'>
-        <Dashboard sessionToken={sessionToken} user={user}/>
+        <Dashboard sessionToken={sessionToken}/>
       </main>
       <Toaster/>
     </div>

@@ -13,7 +13,6 @@ type InteractiveTopoProps = {
     topoId: string;
     filename: string;
     sessionToken: string;
-    user: string;
     description: string;
     line_segments: Feature[];
     refresh: () => void;
@@ -54,7 +53,7 @@ const normalizedPointsPrototype: [number,number][]= [
     ]
 ];
 
-async function submitLine (width: number, height: number, offsetPoints: Array<[number, number]>, topoId: string, filename: string, lineLabel: number, sessionToken: string, user: string, modifiedLabel: number, deleting = false) {
+async function submitLine (width: number, height: number, offsetPoints: Array<[number, number]>, topoId: string, filename: string, lineLabel: number, sessionToken: string, modifiedLabel: number, deleting = false) {
         let asNew = true;
         if(modifiedLabel == lineLabel) {
             asNew = false;
@@ -79,7 +78,6 @@ async function submitLine (width: number, height: number, offsetPoints: Array<[n
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${sessionToken}`,
-                    'X-User': user,
                 },
                 body: JSON.stringify(geoJsonFeature),
             });
@@ -95,7 +93,7 @@ async function submitLine (width: number, height: number, offsetPoints: Array<[n
         }
     }
 
-export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, topoId, filename, sessionToken, user, description, line_segments, refresh}: InteractiveTopoProps) {
+export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, topoId, filename, sessionToken, description, line_segments, refresh}: InteractiveTopoProps) {
     const [topoLoaded, setTopoLoaded] = useState(false);
     const [selectedPath, setSelectedPath] = useState<number | undefined>(undefined);
     const [modifiedPoints, setModifiedPoints] = useState<Array<[number, number]> | null>(null);
@@ -183,13 +181,13 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     async function handleButtons (freshLine = false, deleting = false) {
         try {
             if (freshLine) {
-                await submitLine(1, 1, normalizedPointsPrototype, topoId, filename, 99, sessionToken,user, 99);
+                await submitLine(1, 1, normalizedPointsPrototype, topoId, filename, 99, sessionToken, 99);
                 await refresh();
                 throw new Error("fresh line submitted, but change crag back and forth to view it");
             }
             if (!dimensions) throw new Error("topo not loaded into editor yet");
             if (!modifiedPoints || selectedPath === undefined) throw new Error("either no path selected or no modified points");
-            await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, user, modifiedNumber || 0, deleting);
+            await submitLine(dimensions[0], dimensions[1], modifiedPoints, topoId, filename, selectedPath, sessionToken, modifiedNumber || 0, deleting);
             await refresh();
         } catch (error) {
             toast.error(String(error))
