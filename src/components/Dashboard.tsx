@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 
 
-export default function Dashboard({sessionToken}: {sessionToken: string}) {
+export default function Dashboard({sessionToken, user}: {sessionToken: string, user: string}) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(13);
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
@@ -171,7 +171,8 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
             areaDetails={areaDetails} 
             onAreaChange={handleAreaChange} 
             areas={areas} 
-            sessionToken={sessionToken} 
+            sessionToken={sessionToken}
+            user={user} 
             selectedCrag={selectedCrag} 
             onCragChange={handleCragChange}
             routes={routes}

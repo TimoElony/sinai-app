@@ -25,7 +25,7 @@ const submitSignup = async (email: string, password: string) => {
     }
 }
 
-export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; setSessionToken: React.Dispatch<React.SetStateAction<string>>}) {
+export default function Login({loggedIn, setSessionToken, setUser}: {loggedIn: boolean; setSessionToken: React.Dispatch<React.SetStateAction<string>>; setUser: React.Dispatch<React.SetStateAction<string>>}) {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [toggleLogin, setToggleLogin] = useState<boolean>(true);
@@ -47,6 +47,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
     
             console.log("Login response:", data.message);
             setSessionToken(data.token);
+            setUser(data.user);
         } catch (error) {
             console.error("Error logging in:", error);
             
