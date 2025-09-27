@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; setSessionToken: React.Dispatch<React.SetStateAction<string>>}) {
     const [email, setEmail] = useState<string>('');
@@ -36,7 +37,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                 <div className="flex flex-col md:flex-row md:items-center gap-2 m-2">
                         <Button onClick={()=>setHideAll(true)}>hide</Button>
                         <h1>Login</h1>
-                        <label className="m-2" htmlFor="emailField">email*
+                        <Label className="m-2" htmlFor="emailField">email*
                         <Input
                             type="email"
                             id="emailField"
@@ -44,8 +45,8 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                             onChange={(e) => setEmail(e.target.value)}
                             className="border-2 border-gray-300 rounded-md p-2"
                         />
-                        </label>
-                        <label className="m-2" htmlFor="passwordField">password*
+                        </Label>
+                        <Label className="m-2" htmlFor="passwordField">password*
                         <Input
                             type="password"
                             id="passwordField"
@@ -53,7 +54,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
                             onChange={(e) => setPassword(e.target.value)}
                             className="border-2 border-gray-300 rounded-md p-2"
                         />
-                        </label>
+                        </Label>
                         <Button onClick={() => {
                                     console.log("Login clicked");
                                     submitLogin(email, password);                                
