@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Textarea } from "./ui/textarea";
 import { toast } from "sonner";
+import { useState } from "react";
  
 const formSchema = z.object({
   title: z.string().min(2).max(20),
@@ -33,7 +34,7 @@ const formSchema = z.object({
 });
 
   export default function UploadTopoModal({sessionToken, selectedCrag, selectedArea, refresh, setLoading, setProgress}:{sessionToken: string; selectedCrag: string; selectedArea: string; refresh: () => void; setLoading: (arg: boolean) => void; setProgress: (arg: number)=> void}) {
-    
+    const [isOpen, setIsOpen] = useState<boolean>(false);
     const form= useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -50,6 +51,7 @@ const formSchema = z.object({
      // and one to the backend to add to the database. TODO implement rollback in case one of the 2 fails
      setLoading(true);
      setProgress(50);
+     setIsOpen(false);
      const {image} = values;
      let imageName = undefined;
 
@@ -101,7 +103,7 @@ const formSchema = z.object({
     };
 
     return(
-        <Dialog>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild><Button className="bg-green-400">Add Topo</Button></DialogTrigger>
         <DialogContent>
             <DialogHeader>
