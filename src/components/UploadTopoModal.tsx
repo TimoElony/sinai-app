@@ -141,7 +141,7 @@ const formSchema = z.object({
                     <FormItem>
                       <FormLabel>Longitude (33-34.7 roughly)</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input type="number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -155,7 +155,7 @@ const formSchema = z.object({
                     <FormItem>
                       <FormLabel>Latitude (27.7-29 roughly)</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input type="number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
