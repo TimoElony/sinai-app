@@ -24,13 +24,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const formSchema = z.object({
-    name: z.string().min(2).max(20),
+    name: z.string().min(2).max(50),
     grade: z.string().min(2).max(20),
     length: z.number().min(0).max(100),
     bolts: z.number().min(0).max(100),
     info: z.string().min(2).max(200),
-    area: z.string().min(2).max(20),
-    crag: z.string().min(2).max(20),
+    area: z.string().min(2).max(50),
+    crag: z.string().min(2).max(50),
     setters: z.string().min(2).max(20),
 });
 

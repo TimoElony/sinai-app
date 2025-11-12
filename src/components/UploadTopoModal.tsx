@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { useState } from "react";
  
 const formSchema = z.object({
-  title: z.string().min(2).max(20),
+  title: z.string().min(2).max(50),
   description: z.string().min(2).max(200),
   longitude: z.number().min(24).max(37),
   latitude: z.number().min(22).max(32),
