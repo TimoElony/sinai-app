@@ -20,6 +20,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
     name: z.string().min(2).max(20),
@@ -34,7 +36,7 @@ const formSchema = z.object({
 
 
 export default function CreateRouteModal({sessionToken, selectedCrag, selectedArea, refresh, setLoading, setProgress}:{sessionToken: string; selectedCrag: string; selectedArea: string, refresh: () => void; setLoading: (arg: boolean)=> void; setProgress: (arg: number)=>void}) {
-    
+    const [isOpen, setIsOpen] = useState<boolean>(false);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -51,8 +53,9 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setLoading(true);
+        setIsOpen(false);
         setProgress(50);
-        console.log("Form submitted:", values);
+        toast("submitting...:"+values.name);
         const {name, grade, length, bolts, info, area, crag, setters} = values;
 
         try {
@@ -74,9 +77,9 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                     }),
             });
             const data = await response.json();
-            console.log("Route added:", data);
+            toast("Route added:", data);
         } catch (error) {
-            console.error("Error adding route:", error);
+            toast.error("Error adding route:"+ error);
         } finally {
             setProgress(100)
             refresh();
@@ -85,7 +88,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
     };
 
     return( 
-        <Dialog>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild><Button>Add route to this crag</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
