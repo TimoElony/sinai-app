@@ -20,6 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Textarea } from "./ui/textarea";
+import { toast } from "sonner";
  
 const formSchema = z.object({
   title: z.string().min(2).max(20),
@@ -65,7 +66,7 @@ const formSchema = z.object({
       });
       const data = await response.json();
       imageName = data.fileName;
-      console.log("Image uploaded:", data);
+      toast("Image uploaded:", data);
      } catch (error) {
       console.error("Error uploading image:");
      } finally {
@@ -85,7 +86,7 @@ const formSchema = z.object({
         body: JSON.stringify({...values, image: undefined, name: imageName}),
       });
       const data = await response.json();
-      console.log("Topo added:", data);
+      toast("Topo added:", data);
      } catch (error) {
       console.error("Error adding topo to database:");
      } finally {
