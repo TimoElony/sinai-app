@@ -56,7 +56,9 @@ const formSchema = z.object({
      const formData = new FormData();
      formData.append("image", image);
 
+    
      try {
+      toast("Uploading image...");
       const response = await fetch('https://curly-king-5594.timo-elony.workers.dev', {
         method: 'POST',
         headers: {
@@ -85,6 +87,7 @@ const formSchema = z.object({
         },
         body: JSON.stringify({...values, image: undefined, name: imageName}),
       });
+      toast ("Adding topo to database...");
       const data = await response.json();
       toast("Topo added:", data);
      } catch (error) {
