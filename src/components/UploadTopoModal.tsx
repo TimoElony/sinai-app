@@ -182,7 +182,7 @@ const formSchema = z.object({
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="bg-green-300">Submit</Button>
+                <Button type="submit" className="bg-green-300" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting? 'Submitting...' : 'Submit' }</Button>
               </form>
             </Form>
         </DialogContent>
