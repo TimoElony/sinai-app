@@ -28,7 +28,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
 
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
-    const [changeRoutesNotLines, setChangeRoutesNotLines] = useState<boolean>(true);
+    const [changeRoutesNotLines, setChangeRoutesNotLines] = useState<boolean>(false);
     const topoRef = useRef<HTMLImageElement[] | null>([]);
 
     useEffect(() => {
