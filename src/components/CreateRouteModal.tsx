@@ -29,9 +29,9 @@ const formSchema = z.object({
     length: z.number().min(0).max(100),
     bolts: z.number().min(0).max(100),
     info: z.string().min(2).max(200),
-    area: z.string().min(2).max(50),
-    crag: z.string().min(2).max(50),
-    setters: z.string().min(2).max(20),
+    area: z.string().min(2).max(290),
+    crag: z.string().min(2).max(200),
+    setters: z.string().min(2).max(200),
 });
 
 
