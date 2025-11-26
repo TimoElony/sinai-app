@@ -246,9 +246,9 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                                                     onClick={(e) => handlePathClick(label, e, points)}
                                                     style={{ cursor: "pointer" }}
                                                 />
-                                                <path key={"path"+ label + topoId} d={path} stroke={segment.properties.deleting?"gray":"yellow"} strokeWidth={segment.properties.deleting?1:2} fill="none" pointerEvents="none"/>
+                                                <path key={"path"+ label + topoId} d={path} stroke={segment.properties.deleting?"gray":"yellow"} strokeWidth={segment.properties.deleting?1:1} fill="none" pointerEvents="none"/>
                                                 <circle key={"circle" + label} cx={labelcx} cy={labelcy+20} r={12} fill="white" />
-                                                <circle key={"circleend" + label} cx={points[0][0]} cy={points[0][1]} r={5} stroke={segment.properties.deleting?"gray":"yellow"} strokeWidth={2} fill={segment.properties.deleting?"gray":"yellow"}/>
+                                                <circle key={"circleend" + label} cx={points[0][0]} cy={points[0][1]} r={5} stroke={segment.properties.deleting?"gray":"yellow"} strokeWidth={1} fill={segment.properties.deleting?"gray":"yellow"}/>
                                                 <text key={"text"+label} x={labelcx} y={labelcy+22} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
                                                     {label}
                                                 </text>
