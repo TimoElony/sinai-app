@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
         
         await pool.query(
             "INSERT INTO change_logs (user_id, action) VALUES ($1, $2)",
-            [authResult.user.email, 'Created new route' + name]
+            [authResult.user.email, 'Created new route: ' + name]
         );
         
         return NextResponse.json(newRoute.rows);

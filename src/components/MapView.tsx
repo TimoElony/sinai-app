@@ -8,9 +8,16 @@ import * as turf from '@turf/turf';
 export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[] }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
-    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    
+    if (!mapboxToken) {
+        console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set. Map functionality will be disabled.');
+    }
 
     useEffect(() => {
+        if (!mapboxToken) {
+            return;
+        }
         mapboxgl.accessToken = mapboxToken;
         if (!mapContainerRef.current) {
             return;

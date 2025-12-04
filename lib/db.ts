@@ -1,10 +1,10 @@
 import { Pool } from 'pg';
 
 const pool = new Pool({
-    user: 'postgres.vwpzcvemysspydbtlcxo',
-    host: 'aws-0-eu-central-1.pooler.supabase.com',
-    database: 'postgres',
-    port: 5432,
+    user: process.env.DB_USER || 'postgres.vwpzcvemysspydbtlcxo',
+    host: process.env.DB_HOST || 'aws-0-eu-central-1.pooler.supabase.com',
+    database: process.env.DB_NAME || 'postgres',
+    port: parseInt(process.env.DB_PORT || '5432'),
     password: process.env.DB_PASSWORD,
     ssl: { rejectUnauthorized: false },
     // Connection pool optimizations
