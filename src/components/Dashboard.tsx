@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import ClimbingAreas from "./ClimbingAreas.tsx";
-import ClimbingRoutes from "./ClimbingRoutes.tsx";
-import { ClimbingArea, AreaDetails, TopoPoints, ClimbingRoute, WallTopo} from "../types/types.ts";
-import MapView from "./MapView.tsx";
-import { Progress } from "./ui/progress.tsx";
+import ClimbingAreas from "./ClimbingAreas";
+import ClimbingRoutes from "./ClimbingRoutes";
+import { ClimbingArea, AreaDetails, TopoPoints, ClimbingRoute, WallTopo} from "../types/types";
+import MapView from "./MapView";
+import { Progress } from "./ui/progress";
 
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/src/components/ui/tabs"
 import { toast } from "sonner";
 
 
@@ -42,7 +42,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
 
   const fetchAreas = async () => {
     try {
-      const response = await fetch('https://sinai-backend.onrender.com/climbingareas');
+      const response = await fetch('/api/climbingareas');
       const data = await response.json();
       setAreas(data);
       setProgress(50);
@@ -83,7 +83,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     const areaData = areas.find((areaObj) => areaObj.name === area);
     try {
       if(areaData) {
-        const response = await fetch(`https://sinai-backend.onrender.com/climbingareas/details/${area}`);
+        const response = await fetch(`/api/climbingareas/details/${area}`);
         const responseData = await response.json();        
 
         setAreaDetails({...areaData, ...responseData});
@@ -105,10 +105,10 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         if (!areaName || !cragName) {
             throw new Error("Area name or crag name is not provided");
         }
-        const response = await fetch(`https://sinai-backend.onrender.com/climbingroutes/${areaName}/${cragName}`);
+        const response = await fetch(`/api/climbingroutes/${areaName}/${cragName}`);
         const routeData: ClimbingRoute[] = await response.json();
         setRoutes(routeData);
-        const topoResponse = await fetch(`https://sinai-backend.onrender.com/walltopos/${areaName}/${cragName}`);
+        const topoResponse = await fetch(`/api/walltopos/${areaName}/${cragName}`);
         const topoData: WallTopo[] = await topoResponse.json();
         setTopos(topoData);
     } catch (error) {
@@ -120,7 +120,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
 
   const fetchTopoPoints = async () =>{
         try {
-          const response = await fetch('https://sinai-backend.onrender.com/geodata/topos');
+          const response = await fetch('/api/geodata/topos');
           const data = await response.json();
           setTopopoints(data);
           setProgress(80);

@@ -2,13 +2,13 @@ import { useRef, useEffect } from 'react'
 import mapboxgl from 'mapbox-gl'
 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { ClimbingArea, TopoPoints } from '@/types/types';
+import { ClimbingArea, TopoPoints } from '@/src/types/types';
 import * as turf from '@turf/turf';
 
 export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[] }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
-    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
     useEffect(() => {
         mapboxgl.accessToken = mapboxToken;

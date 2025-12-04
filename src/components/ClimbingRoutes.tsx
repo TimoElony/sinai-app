@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo} from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/src/components/ui/button";
+import { Switch } from "@/src/components/ui/switch";
 import UploadTopoModal from "./UploadTopoModal";
 import { toast } from "sonner";
 import InteractiveTopo from "./InteractiveTopo";
 import { Input } from "./ui/input";
 import RouteDetailsModal from "./RouteDetailsModal";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/src/components/ui/label";
 
 type ClimbingRoutesProps = {
     areas: ClimbingArea[];
@@ -74,7 +74,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             
             const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
             console.log('payload', payload);
-            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
+            const response = await fetch('/api/climbingroutes/updateTopoNumber', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         if(index >= 0 && index != -1) {
             try {
             const payload = {id: selectedRoute.id, wall_topo_ids: selectedRoute.wall_topo_ids, wall_topo_numbers: wall_topo_numbers};
-            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
+            const response = await fetch('/api/climbingroutes/updateTopoNumber', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 const wall_topo_ids_new = [...selectedRoute.wall_topo_ids, topoId];
                 const wall_topo_numbers_new = [...wall_topo_numbers, formTopoNumber];
                 const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
-                const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/addToTopo', {
+                const response = await fetch('/api/climbingroutes/addToTopo', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

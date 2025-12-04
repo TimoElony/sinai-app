@@ -1,5 +1,5 @@
 import React, { RefObject, useState } from "react";
-import { Feature } from "@/types/types";
+import { Feature } from "@/src/types/types";
 import { curveCardinal, line } from "d3-shape";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -73,7 +73,7 @@ async function submitLine (width: number, height: number, offsetPoints: Array<[n
             }
         };
         try {
-            const response = await fetch(`https://sinai-backend.onrender.com/walltopos/drawnLine/${lineLabel}/${asNew}`, {
+            const response = await fetch(`/api/walltopos/drawnLine/${lineLabel}/${asNew}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

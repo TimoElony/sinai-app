@@ -1,7 +1,7 @@
-import { ClimbingArea} from "../types/types.ts";
-import { GradeBarChart } from "./GradeBarChart.tsx";
-import { Button } from "./ui/button.tsx";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card.tsx";
+import { ClimbingArea} from "../types/types";
+import { GradeBarChart } from "./GradeBarChart";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 
 export default function  ClimbingAreas ( {areas, selectedArea, areaDetails, onAreaChange}: {areas: ClimbingArea[]; selectedArea: string | undefined; areaDetails: ClimbingArea | undefined; onAreaChange: (selectedValue: string) => void} ) {
     return (

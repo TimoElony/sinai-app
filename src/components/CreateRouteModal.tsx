@@ -5,7 +5,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog";
+  } from "@/src/components/ui/dialog";
 import {
     Form,
     FormControl,
@@ -13,13 +13,13 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
+} from "@/src/components/ui/form";
+import { Button } from "@/src/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/src/components/ui/textarea";
+import { Input } from "@/src/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -59,7 +59,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
         const {name, grade, length, bolts, info, area, crag, setters} = values;
 
         try {
-            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/new', {
+            const response = await fetch('/api/climbingroutes/new', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

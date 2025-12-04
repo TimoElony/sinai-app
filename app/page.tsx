@@ -1,12 +1,13 @@
+"use client";
 
 import { useState } from 'react';
-import Dashboard from './components/Dashboard.tsx'
-import Login from './components/Login.tsx'
-import { Toaster } from './components/ui/sonner.tsx';
-// added email and little change
+import Dashboard from '../src/components/Dashboard';
+import Login from '../src/components/Login';
+import { Toaster } from '../src/components/ui/sonner';
 
-function App() {
+export default function Home() {
   const [sessionToken, setSessionToken] = useState<string>('');
+  
   return (
     <div className="min-h-screen min-w-screen flex flex-col gap-4 bg-gray-100">
       <header>
@@ -17,7 +18,5 @@ function App() {
       </main>
       <Toaster/>
     </div>
-  )
+  );
 }
-
-export default App
