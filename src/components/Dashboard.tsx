@@ -105,10 +105,27 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         if (!areaName || !cragName) {
             throw new Error("Area name or crag name is not provided");
         }
-        const response = await fetch(`/api/climbingroutes/${areaName}/${cragName}`);
+        
+        // Prepare fetch options based on authentication status
+        const fetchOptions: RequestInit = sessionToken
+            ? {
+                // Logged in: disable caching, add auth header, use timestamp
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Authorization': `Bearer ${sessionToken}`
+                }
+              }
+            : {
+                // Logged out: allow caching
+                cache: 'default'
+              };
+        
+        const timestamp = sessionToken ? `?t=${new Date().getTime()}` : '';
+        const response = await fetch(`/api/climbingroutes/${areaName}/${cragName}${timestamp}`, fetchOptions);
         const routeData: ClimbingRoute[] = await response.json();
         setRoutes(routeData);
-        const topoResponse = await fetch(`/api/walltopos/${areaName}/${cragName}`);
+        const topoResponse = await fetch(`/api/walltopos/${areaName}/${cragName}${timestamp}`, fetchOptions);
         const topoData: WallTopo[] = await topoResponse.json();
         setTopos(topoData);
     } catch (error) {

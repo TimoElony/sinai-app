@@ -23,9 +23,18 @@ export async function GET(
             );
         }
         
+        // Check if user is authenticated (has Authorization header)
+        const authHeader = request.headers.get('authorization');
+        const isAuthenticated = authHeader && authHeader.startsWith('Bearer ');
+        
+        // Cache only for non-authenticated users
+        if (isAuthenticated) {
+            return NextResponse.json(relevantTopos.rows);
+        }
+        
         return NextResponse.json(relevantTopos.rows, {
             headers: {
-                'Cache-Control': 'public, max-age=300',
+                'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
             },
         });
     } catch (error) {

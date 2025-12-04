@@ -124,7 +124,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     }
 
     const handleContainerClick = (e: React.MouseEvent) => {
-        e.preventDefault;
+        e.preventDefault();
         //disabled to properly enable interaction with buttons
         // Check if click was directly on a path element
         // const clickedPath = (e.target as HTMLElement).closest('path');
@@ -145,14 +145,16 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     }
 
     function handleCircleDown(e: React.PointerEvent<SVGCircleElement>) {
-        e.stopPropagation;
+        e.stopPropagation();
+        e.preventDefault();
         setIsDragging(true);
         setIsEditing(true);
     }
 
     function handleCircleMoving(e: React.PointerEvent<SVGCircleElement>, pointIndex: number) {
         if (!isDragging || !modifiedPoints) return;
-        e.stopPropagation;
+        e.stopPropagation();
+        e.preventDefault();
         const newPoints = [...modifiedPoints];
         newPoints[pointIndex] = [e.nativeEvent.offsetX, e.nativeEvent.offsetY]
         setModifiedPoints(newPoints);
@@ -197,7 +199,6 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
             setModifiedPoints(null);
             setModifiedNumber(undefined);
         }
-        
     }
 
     return (
@@ -290,6 +291,6 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                                 <Label htmlFor="lineLabel" className="text-sm">Change line number before submitting if needed</Label>
                                 </>
                             }
-                            </div>
+        </div>
     )
 }

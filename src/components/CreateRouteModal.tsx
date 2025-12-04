@@ -76,13 +76,20 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                         setters,
                     }),
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create route');
+            }
+            
             const data = await response.json();
-            toast("Route added:", data);
+            toast.success("Route added: " + data.message);
+            form.reset(); // Reset form after successful submission
         } catch (error) {
-            toast.error("Error adding route:"+ error);
+            toast.error("Error adding route: " + String(error));
         } finally {
-            setProgress(100)
-            refresh();
+            setProgress(100);
+            await refresh();
             setLoading(false);
         }
     };

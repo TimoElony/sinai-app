@@ -54,10 +54,11 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const refresh = async () => {
         setFormTopoNumber(0);
         setSelectedRoute(undefined);
-        if(!selectedCrag){
-            toast('no crag selected');
+        if(!selectedCrag || !selectedArea){
+            toast('no crag or area selected');
             return;
         }
+        // Re-fetch routes and topos to get updated state
         await onCragChange(selectedCrag);
     }
     
@@ -82,11 +83,19 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 },
                 body: JSON.stringify(payload),
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to remove route from topo');
+            }
+            
+            const data = await response.json();
+            toast.success('Route removed from topo');
             console.log(response);  
         } catch (error) {
-            toast.error(`error removing route from topo${String(error)}`);
+            toast.error(`error removing route from topo: ${String(error)}`);
         } finally {
-            refresh();
+            await refresh();
         }
     }
 
@@ -116,6 +125,14 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 },
                 body: JSON.stringify(payload),
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update topo number');
+            }
+            
+            const data = await response.json();
+            toast.success('Topo number updated');
             console.log(response);
             } catch (error) {
                 toast.error(`error updating topo number: ${String(error)}`);
@@ -123,7 +140,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 refresh();
             }
         } else {
-            toast('route does not exist on this topo yet');
+            toast('route does not exist on this topo yet, adding...');
             try {
                 const wall_topo_ids_new = [...selectedRoute.wall_topo_ids, topoId];
                 const wall_topo_numbers_new = [...wall_topo_numbers, formTopoNumber];
@@ -136,9 +153,17 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     },
                     body: JSON.stringify(payload),
                 });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to add route to topo');
+                }
+                
+                const data = await response.json();
+                toast.success('Route added to topo');
                 console.log(response);
             } catch (error) {
-                toast.error(`error posting route to topo, try again later or check reason: ${String(error)}`);
+                toast.error(`error posting route to topo: ${String(error)}`);
             } finally {
                 refresh();
             }
@@ -210,7 +235,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                             </div>
                         )}
                     </div>
-                    <InteractiveTopo 
+                    <InteractiveTopo
+                        key={`${topo.id}-${topos[index].line_segments?.length || 0}`}
                         changeRoutesNotLines={changeRoutesNotLines}
                         topoRef={topoRef} 
                         index={index} 

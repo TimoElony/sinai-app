@@ -28,9 +28,9 @@ export async function PUT(
     try {
         const { asNew } = await params;
         const geoJSONLine = await request.json();
-        const { topo_id, line_label } = geoJSONLine.properties;
+        const { topo_id, line_label, deleting } = geoJSONLine.properties;
         
-        if (!topo_id || !geoJSONLine?.geometry?.coordinates) {
+        if (!topo_id || (!deleting && !geoJSONLine?.geometry?.coordinates)) {
             return NextResponse.json(
                 { error: "Missing required fields" },
                 { status: 400 }
@@ -45,6 +45,23 @@ export async function PUT(
         
         // Current line segments array (or empty array if null)
         const currentSegments: LineSegment[] = oldData.rows[0]?.line_segments || [];
+        
+        // Handle deletion
+        if (deleting) {
+            const updatedSegments = currentSegments.filter(
+                (segment: LineSegment) => segment.properties?.line_label !== line_label
+            );
+            
+            await pool.query(
+                "UPDATE wall_topos SET line_segments = $1 WHERE id = $2",
+                [updatedSegments, topo_id]
+            );
+
+            return NextResponse.json({ 
+                ok: true,
+                message: "Successfully deleted line segment"
+            });
+        }
         
         if (!asNew || asNew === 'false') {
             // Replace existing segment with same label
