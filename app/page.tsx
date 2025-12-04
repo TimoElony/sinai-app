@@ -13,7 +13,7 @@ export default function Home() {
       <header>
         <Login loggedIn={!(sessionToken==='')} setSessionToken={setSessionToken}/>
       </header>
-      <main className='w-full max-w-7xl mx-auto px-4'>
+      <main className='w-full lg:max-w-3xl mx-auto px-4'>
         <Dashboard sessionToken={sessionToken}/>
       </main>
       <Toaster/>

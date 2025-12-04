@@ -29,6 +29,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
     const [changeRoutesNotLines, setChangeRoutesNotLines] = useState<boolean>(false);
+    const [sortBy, setSortBy] = useState<'latest' | 'fullest' | 'alphabetical'>('latest');
     const topoRef = useRef<HTMLImageElement[] | null>([]);
 
     useEffect(() => {
@@ -207,9 +208,38 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     </div>
                 </>
             )}
-            <h1>Topos</h1>
+            <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
+                <h1 className="text-2xl font-bold">Topos</h1>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="sortTopos">Sort by:</Label>
+                    <select 
+                        id="sortTopos"
+                        className="bg-gray-200 p-2 rounded-lg shadow-md"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as 'latest' | 'fullest' | 'alphabetical')}
+                    >
+                        <option value="latest">Latest</option>
+                        <option value="fullest">Most Routes</option>
+                        <option value="alphabetical">Alphabetical</option>
+                    </select>
+                </div>
+            </div>
             {!topos? <></> :
-            topos.map((topo, index)=> {
+            [...topos]
+                .sort((a, b) => {
+                    if (sortBy === 'latest') {
+                        // Already sorted by updated_at DESC from API, but reversing for latest first
+                        return 0; // Keep original order (already latest first from API)
+                    } else if (sortBy === 'fullest') {
+                        // Count routes for each topo
+                        const aRouteCount = routes.filter(r => r.wall_topo_ids.includes(a.id)).length;
+                        const bRouteCount = routes.filter(r => r.wall_topo_ids.includes(b.id)).length;
+                        return bRouteCount - aRouteCount; // Descending (most routes first)
+                    } else { // alphabetical
+                        return a.description.localeCompare(b.description);
+                    }
+                })
+                .map((topo, index)=> {
                 
             return (
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
@@ -236,7 +266,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         )}
                     </div>
                     <InteractiveTopo
-                        key={`${topo.id}-${topos[index].line_segments?.length || 0}`}
+                        key={`${topo.id}-${topo.line_segments?.length || 0}`}
                         changeRoutesNotLines={changeRoutesNotLines}
                         topoRef={topoRef} 
                         index={index} 
@@ -244,7 +274,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         filename={topo.extracted_filename} 
                         sessionToken={sessionToken} 
                         description={topo.description} 
-                        line_segments={topos[index].line_segments} 
+                        line_segments={topo.line_segments} 
                         refresh={refresh}/>
                     <p>{topo.details}</p>
                     <table className="table-auto w-full">

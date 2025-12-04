@@ -102,7 +102,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     const [isEditing, setIsEditing] = useState(false);
     const [dimensions, setDimensions] = useState<[number, number] | null>(null);
 
-    const maxWidth = 800;
+    const maxWidth = 640; // Reduced from 800 (20% smaller)
     const breakpoints = [400, 600, 800, 1200]; // Your preferred breakpoints
     const src = "https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/"
     // Generate srcset with Cloudflare resizing
