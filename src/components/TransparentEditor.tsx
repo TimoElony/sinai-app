@@ -5,7 +5,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog";
+  } from "@/src/components/ui/dialog";
 import { Button } from "./ui/button";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "./ui/input";

@@ -5,7 +5,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog";
+  } from "@/src/components/ui/dialog";
   import {
   Form,
   FormControl,
@@ -13,9 +13,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-  import { Button } from "@/components/ui/button";
+} from "@/src/components/ui/form"
+import { Input } from "@/src/components/ui/input"
+  import { Button } from "@/src/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -81,7 +81,7 @@ const formSchema = z.object({
       if (!imageName) {
         throw new Error("topo not uploaded, try again or contact Timo")
       }
-      const response = await fetch(`https://sinai-backend.onrender.com/walltopos/${selectedArea}/${selectedCrag}`, {
+      const response = await fetch(`/api/walltopos/${selectedArea}/${selectedCrag}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

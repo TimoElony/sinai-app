@@ -1,5 +1,5 @@
 import React, { RefObject, useState } from "react";
-import { Feature } from "@/types/types";
+import { Feature } from "@/src/types/types";
 import { curveCardinal, line } from "d3-shape";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -73,7 +73,7 @@ async function submitLine (width: number, height: number, offsetPoints: Array<[n
             }
         };
         try {
-            const response = await fetch(`https://sinai-backend.onrender.com/walltopos/drawnLine/${lineLabel}/${asNew}`, {
+            const response = await fetch(`/api/walltopos/drawnLine/${lineLabel}/${asNew}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     const [isEditing, setIsEditing] = useState(false);
     const [dimensions, setDimensions] = useState<[number, number] | null>(null);
 
-    const maxWidth = 800;
+    const maxWidth = 640; // Reduced from 800 (20% smaller)
     const breakpoints = [400, 600, 800, 1200]; // Your preferred breakpoints
     const src = "https://pub-5949e21c7d4c4f3e91058712f265f987.r2.dev/"
     // Generate srcset with Cloudflare resizing
@@ -124,7 +124,7 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     }
 
     const handleContainerClick = (e: React.MouseEvent) => {
-        e.preventDefault;
+        e.preventDefault();
         //disabled to properly enable interaction with buttons
         // Check if click was directly on a path element
         // const clickedPath = (e.target as HTMLElement).closest('path');
@@ -145,14 +145,16 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
     }
 
     function handleCircleDown(e: React.PointerEvent<SVGCircleElement>) {
-        e.stopPropagation;
+        e.stopPropagation();
+        e.preventDefault();
         setIsDragging(true);
         setIsEditing(true);
     }
 
     function handleCircleMoving(e: React.PointerEvent<SVGCircleElement>, pointIndex: number) {
         if (!isDragging || !modifiedPoints) return;
-        e.stopPropagation;
+        e.stopPropagation();
+        e.preventDefault();
         const newPoints = [...modifiedPoints];
         newPoints[pointIndex] = [e.nativeEvent.offsetX, e.nativeEvent.offsetY]
         setModifiedPoints(newPoints);
@@ -197,7 +199,6 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
             setModifiedPoints(null);
             setModifiedNumber(undefined);
         }
-        
     }
 
     return (
@@ -290,6 +291,6 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                                 <Label htmlFor="lineLabel" className="text-sm">Change line number before submitting if needed</Label>
                                 </>
                             }
-                            </div>
+        </div>
     )
 }

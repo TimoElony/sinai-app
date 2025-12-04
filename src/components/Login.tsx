@@ -10,7 +10,7 @@ export default function Login({loggedIn, setSessionToken}: {loggedIn: boolean; s
 
     const submitLogin  = async (email: string, password: string) => {
         try {
-            const response = await fetch('https://sinai-backend.onrender.com/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

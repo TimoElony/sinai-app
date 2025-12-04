@@ -4,15 +4,15 @@ import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 import {
   CardContent,
-} from "@/components/ui/card"
+} from "@/src/components/ui/card"
 
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { AreaDetails } from "@/types/types"
+} from "@/src/components/ui/chart"
+import { AreaDetails } from "@/src/types/types"
 
 const chartConfig = {
   route_count: {
