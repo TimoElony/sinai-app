@@ -19,8 +19,12 @@ h2 {
   @apply text-xl font-bold p-1;
 }
 
-th, td {
-  @apply p-3 text-xs md:text-sm text-wrap;
+td {
+  @apply p-3 text-xs md:text-sm overflow-hidden;
+}
+
+th {
+  @apply p-3 text-xs md:text-sm;
 }
 
 @theme inline {
