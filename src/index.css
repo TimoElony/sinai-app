@@ -2,26 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .StandardButton {
-  @apply bg-gray-200 p-4 rounded-lg shadow-md;
-}
-
-h3 {
-  @apply text-lg font-semibold;
-}
-
-h1 {
-  @apply text-2xl font-bold p-2;
-}
-h2 {
-  @apply text-xl font-bold p-1;
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground;
 }
 
 th, td {
-  @apply p-3 text-xs md:text-sm text-wrap;
+  @apply p-3 text-xs md:text-sm;
+  /* Ensure table cells wrap long content instead of forcing horizontal scroll */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
-
 
 @layer base {
   :root {
@@ -82,8 +73,10 @@ th, td {
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground;
+    /* Prevent a global horizontal scrollbar when some elements overflow slightly */
+    overflow-x: hidden;
   }
 }
