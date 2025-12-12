@@ -203,8 +203,18 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
     useEffect(() => {
         if (!highlightedTopoId || !mapInstanceRef.current) return;
         
+        console.log('Highlighting topo:', highlightedTopoId);
+        console.log('Available topoPoints:', topoPoints);
+        
         const highlightedTopo = topoPoints.find(tp => tp.id === highlightedTopoId);
-        if (!highlightedTopo) return;
+        console.log('Found topo:', highlightedTopo);
+        
+        if (!highlightedTopo) {
+            console.error('Could not find topo with id:', highlightedTopoId);
+            return;
+        }
+
+        console.log('Coordinates:', highlightedTopo.longitude, highlightedTopo.latitude);
 
         // Remove existing highlight marker
         if (highlightMarkerRef.current) {
@@ -239,7 +249,10 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
         }
 
         // Create and add the marker
-        highlightMarkerRef.current = new mapboxgl.Marker(el)
+        highlightMarkerRef.current = new mapboxgl.Marker({
+            element: el,
+            anchor: 'center'
+        })
             .setLngLat([highlightedTopo.longitude, highlightedTopo.latitude])
             .setPopup(
                 new mapboxgl.Popup({ offset: 25 })
