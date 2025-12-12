@@ -214,84 +214,90 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
         if (!highlightedTopoId || !mapInstanceRef.current) return;
         
         console.log('Highlighting topo:', highlightedTopoId);
-        console.log('Available topoPoints:', topoPoints);
         
-        const highlightedTopo = topoPoints.find(tp => tp.id === highlightedTopoId);
-        console.log('Found topo:', highlightedTopo);
+        const map = mapInstanceRef.current;
         
-        if (!highlightedTopo) {
-            console.error('Could not find topo with id:', highlightedTopoId);
-            return;
-        }
+        // Wait for map to be fully loaded
+        const addHighlight = () => {
+            const highlightedTopo = topoPoints.find(tp => tp.id === highlightedTopoId);
+            console.log('Found topo:', highlightedTopo);
+            
+            if (!highlightedTopo) {
+                console.error('Could not find topo with id:', highlightedTopoId);
+                return;
+            }
 
-        console.log('Coordinates:', highlightedTopo.longitude, highlightedTopo.latitude);
+            console.log('Coordinates:', highlightedTopo.longitude, highlightedTopo.latitude);
 
-        // Ensure coordinates are numbers
-        const lng = parseFloat(String(highlightedTopo.longitude));
-        const lat = parseFloat(String(highlightedTopo.latitude));
-        
-        if (isNaN(lng) || isNaN(lat)) {
-            console.error('Invalid coordinates:', { lng, lat, original: highlightedTopo });
-            return;
-        }
-        
-        console.log('Parsed coordinates:', lng, lat);
+            // Ensure coordinates are numbers
+            const lng = parseFloat(String(highlightedTopo.longitude));
+            const lat = parseFloat(String(highlightedTopo.latitude));
+            
+            if (isNaN(lng) || isNaN(lat)) {
+                console.error('Invalid coordinates:', { lng, lat, original: highlightedTopo });
+                return;
+            }
+            
+            console.log('Parsed coordinates:', lng, lat);
 
-        // Remove existing highlight layer if it exists
-        if (mapInstanceRef.current.getLayer('highlighted-topo')) {
-            mapInstanceRef.current.removeLayer('highlighted-topo');
-        }
-        if (mapInstanceRef.current.getSource('highlighted-topo')) {
-            mapInstanceRef.current.removeSource('highlighted-topo');
-        }
+            // Remove existing highlight layer if it exists
+            if (map.getLayer('highlighted-topo')) {
+                map.removeLayer('highlighted-topo');
+            }
+            if (map.getSource('highlighted-topo')) {
+                map.removeSource('highlighted-topo');
+            }
 
-        // Add source for highlighted topo
-        mapInstanceRef.current.addSource('highlighted-topo', {
-            type: 'geojson',
-            data: {
-                type: 'Feature',
-                properties: {
-                    description: highlightedTopo.description,
-                    climbing_area_name: highlightedTopo.climbing_area_name,
+            // Add source for highlighted topo
+            map.addSource('highlighted-topo', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    properties: {
+                        description: highlightedTopo.description,
+                        climbing_area_name: highlightedTopo.climbing_area_name,
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [lng, lat],
+                    },
                 },
-                geometry: {
-                    type: 'Point',
-                    coordinates: [lng, lat],
+            });
+
+            // Add pulsing circle layer for highlighted topo
+            map.addLayer({
+                id: 'highlighted-topo',
+                type: 'circle',
+                source: 'highlighted-topo',
+                paint: {
+                    'circle-radius': 20,
+                    'circle-color': '#ff0000',
+                    'circle-opacity': 0.8,
+                    'circle-stroke-width': 3,
+                    'circle-stroke-color': '#ffffff',
                 },
-            },
-        });
+            });
 
-        // Add pulsing circle layer for highlighted topo
-        mapInstanceRef.current.addLayer({
-            id: 'highlighted-topo',
-            type: 'circle',
-            source: 'highlighted-topo',
-            paint: {
-                'circle-radius': 20,
-                'circle-color': '#ff0000',
-                'circle-opacity': 0.8,
-                'circle-stroke-width': 3,
-                'circle-stroke-color': '#ffffff',
-            },
-        });
+            // Fly to the highlighted location
+            map.flyTo({
+                center: [lng, lat],
+                zoom: 14,
+                essential: true
+            });
 
-        // Fly to the highlighted location
-        mapInstanceRef.current.flyTo({
-            center: [lng, lat],
-            zoom: 14,
-            essential: true
-        });
-
-        // Show popup on the highlighted point
-        const popup = new mapboxgl.Popup({ offset: 25 })
-            .setLngLat([lng, lat])
-            .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
-            .addTo(mapInstanceRef.current);
-
-        // Cleanup function to remove highlight when component unmounts or topoId changes
-        return () => {
-            popup.remove();
+            // Show popup on the highlighted point
+            const popup = new mapboxgl.Popup({ offset: 25 })
+                .setLngLat([lng, lat])
+                .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
+                .addTo(map);
         };
+
+        // Check if map style is loaded, if not wait for it
+        if (map.isStyleLoaded()) {
+            addHighlight();
+        } else {
+            map.once('styledata', addHighlight);
+        }
 
     }, [highlightedTopoId, topoPoints]);
 
