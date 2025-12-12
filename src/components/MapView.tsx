@@ -39,24 +39,35 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                     type: 'geojson',
                     data: {
                         type: 'FeatureCollection',
-                        features: topoPoints.map((point) => ({
-                            type: 'Feature',
-                            properties: {
-                                description: point.description,
-                                climbing_area_name: point.climbing_area_name,
-                                climbing_sector: point.climbing_sector,
-                            },
-                            geometry: {
-                                type: 'Point',
-                                coordinates: [point.longitude, point.latitude],
-                            },
-                        })),
+                        features: topoPoints
+                            .filter(point => point.longitude != null && point.latitude != null && 
+                                           !isNaN(Number(point.longitude)) && !isNaN(Number(point.latitude)))
+                            .map((point) => ({
+                                type: 'Feature',
+                                properties: {
+                                    description: point.description,
+                                    climbing_area_name: point.climbing_area_name,
+                                    climbing_sector: point.climbing_sector,
+                                },
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: [Number(point.longitude), Number(point.latitude)],
+                                },
+                            })),
                     },
                 });
                 
                 areas.map((area)=>{
-                    const areaPoints = topoPoints.filter((point)=>point.climbing_area_name === area.name);
-                    const areaCollection = turf.featureCollection(areaPoints.map((point)=>turf.point([point.longitude, point.latitude], { name: point.description })));
+                    const areaPoints = topoPoints.filter((point)=>
+                        point.climbing_area_name === area.name && 
+                        point.longitude != null && 
+                        point.latitude != null &&
+                        !isNaN(Number(point.longitude)) && 
+                        !isNaN(Number(point.latitude))
+                    );
+                    const areaCollection = turf.featureCollection(areaPoints.map((point)=>
+                        turf.point([Number(point.longitude), Number(point.latitude)], { name: point.description })
+                    ));
                     if (areaCollection.features.length < 3) {
                         const x = areaCollection.features[0]?.geometry.coordinates[0];
                         const y = areaCollection.features[0]?.geometry.coordinates[1];
@@ -260,16 +271,15 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
         }
 
         // Create and add the marker
-        highlightMarkerRef.current = new mapboxgl.Marker({
-            element: el,
-            anchor: 'center'
-        })
-            .setLngLat([lng, lat])
-            .setPopup(
-                new mapboxgl.Popup({ offset: 25 })
-                    .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
-            )
-            .addTo(mapInstanceRef.current);
+        const marker = new mapboxgl.Marker(el, { anchor: 'center' });
+        marker.setLngLat([lng, lat]);
+        marker.setPopup(
+            new mapboxgl.Popup({ offset: 25 })
+                .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
+        );
+        marker.addTo(mapInstanceRef.current);
+        
+        highlightMarkerRef.current = marker;
 
         // Fly to the highlighted location
         mapInstanceRef.current.flyTo({
@@ -278,10 +288,10 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
             essential: true
         });
 
-        // Open the popup
-        highlightMarkerRef.current.togglePopup();
-        // position the marker correctly
-        highlightMarkerRef.current.setLngLat([lng, lat]);
+        // Open the popup after a short delay
+        setTimeout(() => {
+            highlightMarkerRef.current?.togglePopup();
+        }, 100);
 
 
     }, [highlightedTopoId, topoPoints]);
