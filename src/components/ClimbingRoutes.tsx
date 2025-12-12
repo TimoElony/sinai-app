@@ -279,14 +279,14 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     <p>{topo.details}</p>
                     <table className="table-fixed w-full">
                         <colgroup>
-                            <col className="w-24" />
+                            <col className="w-10" />
                             <col className="w-auto" />
-                            <col className="w-20" />
-                            <col className="w-24" />
+                            <col className="w-15" />
+                            <col className="w-15" />
                         </colgroup>
                         <thead>
                             <tr className="text-gray-700">
-                                <th className="text-start whitespace-nowrap">No in Topo</th>
+                                <th className="text-start whitespace-nowrap">#</th>
                                 <th className="text-start">Name</th>
                                 <th className="text-end whitespace-nowrap">Grade</th>
                                 <th className="text-end whitespace-nowrap">Length</th>
