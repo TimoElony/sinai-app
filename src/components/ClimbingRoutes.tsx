@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ClimbingArea, ClimbingRoute, AreaDetails, WallTopo} from "../types/types";
 import CreateRouteModal from "./CreateRouteModal";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/src/components/ui/button";
+import { Switch } from "@/src/components/ui/switch";
 import UploadTopoModal from "./UploadTopoModal";
 import { toast } from "sonner";
 import InteractiveTopo from "./InteractiveTopo";
 import { Input } from "./ui/input";
 import RouteDetailsModal from "./RouteDetailsModal";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/src/components/ui/label";
 
 type ClimbingRoutesProps = {
     areas: ClimbingArea[];
@@ -29,6 +29,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
     const [changeRoutesNotLines, setChangeRoutesNotLines] = useState<boolean>(false);
+    const [sortBy, setSortBy] = useState<'latest' | 'fullest' | 'alphabetical'>('latest');
     const topoRef = useRef<HTMLImageElement[] | null>([]);
 
     useEffect(() => {
@@ -54,10 +55,11 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const refresh = async () => {
         setFormTopoNumber(0);
         setSelectedRoute(undefined);
-        if(!selectedCrag){
-            toast('no crag selected');
+        if(!selectedCrag || !selectedArea){
+            toast('no crag or area selected');
             return;
         }
+        // Re-fetch routes and topos to get updated state
         await onCragChange(selectedCrag);
     }
     
@@ -74,7 +76,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             
             const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
             console.log('payload', payload);
-            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
+            const response = await fetch('/api/climbingroutes/updateTopoNumber', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,11 +84,19 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 },
                 body: JSON.stringify(payload),
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to remove route from topo');
+            }
+            
+            const data = await response.json();
+            toast.success('Route removed from topo');
             console.log(response);  
         } catch (error) {
-            toast.error(`error removing route from topo${String(error)}`);
+            toast.error(`error removing route from topo: ${String(error)}`);
         } finally {
-            refresh();
+            await refresh();
         }
     }
 
@@ -108,7 +118,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         if(index >= 0 && index != -1) {
             try {
             const payload = {id: selectedRoute.id, wall_topo_ids: selectedRoute.wall_topo_ids, wall_topo_numbers: wall_topo_numbers};
-            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/updateTopoNumber', {
+            const response = await fetch('/api/climbingroutes/updateTopoNumber', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -116,6 +126,14 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 },
                 body: JSON.stringify(payload),
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update topo number');
+            }
+            
+            const data = await response.json();
+            toast.success('Topo number updated');
             console.log(response);
             } catch (error) {
                 toast.error(`error updating topo number: ${String(error)}`);
@@ -123,12 +141,12 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 refresh();
             }
         } else {
-            toast('route does not exist on this topo yet');
+            toast('route does not exist on this topo yet, adding...');
             try {
                 const wall_topo_ids_new = [...selectedRoute.wall_topo_ids, topoId];
                 const wall_topo_numbers_new = [...wall_topo_numbers, formTopoNumber];
                 const payload = {id: selectedRoute.id, wall_topo_ids: wall_topo_ids_new, wall_topo_numbers: wall_topo_numbers_new};
-                const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/addToTopo', {
+                const response = await fetch('/api/climbingroutes/addToTopo', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -136,9 +154,17 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     },
                     body: JSON.stringify(payload),
                 });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to add route to topo');
+                }
+                
+                const data = await response.json();
+                toast.success('Route added to topo');
                 console.log(response);
             } catch (error) {
-                toast.error(`error posting route to topo, try again later or check reason: ${String(error)}`);
+                toast.error(`error posting route to topo: ${String(error)}`);
             } finally {
                 refresh();
             }
@@ -155,7 +181,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             <h3>Select Area you want to see Topos of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
-                {areas.map((area) => {
+                {areas && Array.isArray(areas) && areas.map((area) => {
                     return(
                         <option key={area.id} value={area.name}>{area.name}</option>
                     );
@@ -182,13 +208,42 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     </div>
                 </>
             )}
-            <h1>Topos</h1>
+            <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
+                <h1 className="text-2xl font-bold">Topos</h1>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="sortTopos">Sort by:</Label>
+                    <select 
+                        id="sortTopos"
+                        className="bg-gray-200 p-2 rounded-lg shadow-md"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as 'latest' | 'fullest' | 'alphabetical')}
+                    >
+                        <option value="latest">Latest</option>
+                        <option value="fullest">Most Routes</option>
+                        <option value="alphabetical">Alphabetical</option>
+                    </select>
+                </div>
+            </div>
             {!topos? <></> :
-            topos.map((topo, index)=> {
+            [...topos]
+                .sort((a, b) => {
+                    if (sortBy === 'latest') {
+                        // Already sorted by updated_at DESC from API, but reversing for latest first
+                        return 0; // Keep original order (already latest first from API)
+                    } else if (sortBy === 'fullest') {
+                        // Count routes for each topo
+                        const aRouteCount = routes.filter(r => r.wall_topo_ids.includes(a.id)).length;
+                        const bRouteCount = routes.filter(r => r.wall_topo_ids.includes(b.id)).length;
+                        return bRouteCount - aRouteCount; // Descending (most routes first)
+                    } else { // alphabetical
+                        return a.description.localeCompare(b.description);
+                    }
+                })
+                .map((topo, index)=> {
                 
             return (
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
-                    <h2 >{topo.description}</h2>
+                    <h2>{topo.description}</h2>
                     <div className="flex flex-col lg:flex-row lg:items-center">
                         { sessionToken && (
                         <>
@@ -210,7 +265,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                             </div>
                         )}
                     </div>
-                    <InteractiveTopo 
+                    <InteractiveTopo
+                        key={`${topo.id}-${topo.line_segments?.length || 0}`}
                         changeRoutesNotLines={changeRoutesNotLines}
                         topoRef={topoRef} 
                         index={index} 
@@ -218,10 +274,16 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         filename={topo.extracted_filename} 
                         sessionToken={sessionToken} 
                         description={topo.description} 
-                        line_segments={topos[index].line_segments} 
+                        line_segments={topo.line_segments} 
                         refresh={refresh}/>
                     <p>{topo.details}</p>
-                    <table className="table-auto w-full">
+                    <table className="table-fixed w-full">
+                        <colgroup>
+                            <col className="w-8" />
+                            <col className="w-auto" />
+                            <col className="w-13" />
+                            <col className="w-15" />
+                        </colgroup>
                         <thead>
                             <tr className="text-gray-700">
                                 <th className="text-start whitespace-nowrap">No in Topo</th>
@@ -234,10 +296,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     {routes.filter((route)=>(route.wall_topo_ids.includes(topo.id))).sort((a, b) => a.wall_topo_numbers[a.wall_topo_ids.indexOf(topo.id)] - b.wall_topo_numbers[b.wall_topo_ids.indexOf(topo.id)]).map((route) => {
                         return (
                             <tr key={route.id} className="hover:bg-gray-200">
-                                <td>{route.wall_topo_numbers[route.wall_topo_ids.indexOf(topo.id)] || "n.n."}</td>
-                                <td className="font-bold"><RouteDetailsModal name={route.name} grade={route.grade_best_guess} faGrade={route.fa_grade} length={route.length} bolts={route.bolts} pitches={route.pitches} description={route.plain_description} approach={route.approach} descent={route.descent} credit={"FA by "+route.setters+". Date: " + route.fa_day+"/"+route.fa_month+"/"+route.fa_year}/></td>
-                                <td className="text-end">{route.grade_best_guess}</td>
-                                <td className="text-end">{route.length}m</td>
+                                <td className="text-xs overflow-hidden text-ellipsis">{route.wall_topo_numbers[route.wall_topo_ids.indexOf(topo.id)] || "n.n."}</td>
+                                <td className="font-bold text-xs overflow-hidden text-ellipsis"><RouteDetailsModal name={route.name} grade={route.grade_best_guess} faGrade={route.fa_grade} length={route.length} bolts={route.bolts} pitches={route.pitches} description={route.plain_description} approach={route.approach} descent={route.descent} credit={"FA by "+route.setters+". Date: " + route.fa_day+"/"+route.fa_month+"/"+route.fa_year}/></td>
+                                <td className="text-end text-xs overflow-hidden text-ellipsis">{route.grade_best_guess}</td>
+                                <td className="text-end text-xs overflow-hidden text-ellipsis">{route.length}m</td>
                             </tr>
                         );
                     })}

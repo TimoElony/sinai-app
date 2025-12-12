@@ -5,7 +5,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/ui/dialog";
+  } from "@/src/components/ui/dialog";
 import {
     Form,
     FormControl,
@@ -13,13 +13,13 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
+} from "@/src/components/ui/form";
+import { Button } from "@/src/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/src/components/ui/textarea";
+import { Input } from "@/src/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -59,7 +59,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
         const {name, grade, length, bolts, info, area, crag, setters} = values;
 
         try {
-            const response = await fetch('https://sinai-backend.onrender.com/climbingroutes/new', {
+            const response = await fetch('/api/climbingroutes/new', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -76,13 +76,20 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                         setters,
                     }),
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create route');
+            }
+            
             const data = await response.json();
-            toast("Route added:", data);
+            toast.success("Route added: " + data.message);
+            form.reset(); // Reset form after successful submission
         } catch (error) {
-            toast.error("Error adding route:"+ error);
+            toast.error("Error adding route: " + String(error));
         } finally {
-            setProgress(100)
-            refresh();
+            setProgress(100);
+            await refresh();
             setLoading(false);
         }
     };
