@@ -277,7 +277,13 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         line_segments={topo.line_segments} 
                         refresh={refresh}/>
                     <p>{topo.details}</p>
-                    <table className="table-auto w-full">
+                    <table className="table-fixed w-full">
+                        <colgroup>
+                            <col className="w-24" />
+                            <col className="w-auto" />
+                            <col className="w-20" />
+                            <col className="w-24" />
+                        </colgroup>
                         <thead>
                             <tr className="text-gray-700">
                                 <th className="text-start whitespace-nowrap">No in Topo</th>
@@ -290,10 +296,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     {routes.filter((route)=>(route.wall_topo_ids.includes(topo.id))).sort((a, b) => a.wall_topo_numbers[a.wall_topo_ids.indexOf(topo.id)] - b.wall_topo_numbers[b.wall_topo_ids.indexOf(topo.id)]).map((route) => {
                         return (
                             <tr key={route.id} className="hover:bg-gray-200">
-                                <td>{route.wall_topo_numbers[route.wall_topo_ids.indexOf(topo.id)] || "n.n."}</td>
-                                <td className="font-bold"><RouteDetailsModal name={route.name} grade={route.grade_best_guess} faGrade={route.fa_grade} length={route.length} bolts={route.bolts} pitches={route.pitches} description={route.plain_description} approach={route.approach} descent={route.descent} credit={"FA by "+route.setters+". Date: " + route.fa_day+"/"+route.fa_month+"/"+route.fa_year}/></td>
-                                <td className="text-end">{route.grade_best_guess}</td>
-                                <td className="text-end">{route.length}m</td>
+                                <td className="text-xs overflow-hidden text-ellipsis">{route.wall_topo_numbers[route.wall_topo_ids.indexOf(topo.id)] || "n.n."}</td>
+                                <td className="font-bold text-xs overflow-hidden text-ellipsis"><RouteDetailsModal name={route.name} grade={route.grade_best_guess} faGrade={route.fa_grade} length={route.length} bolts={route.bolts} pitches={route.pitches} description={route.plain_description} approach={route.approach} descent={route.descent} credit={"FA by "+route.setters+". Date: " + route.fa_day+"/"+route.fa_month+"/"+route.fa_year}/></td>
+                                <td className="text-end text-xs overflow-hidden text-ellipsis">{route.grade_best_guess}</td>
+                                <td className="text-end text-xs overflow-hidden text-ellipsis">{route.length}m</td>
                             </tr>
                         );
                     })}
