@@ -1,4 +1,5 @@
 export type TopoPoints = {
+  id: string;
   description: string;
   longitude: number;
   latitude: number;

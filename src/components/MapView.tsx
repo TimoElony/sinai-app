@@ -5,9 +5,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { ClimbingArea, TopoPoints } from '@/src/types/types';
 import * as turf from '@turf/turf';
 
-export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[] }) {
+export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas, highlightedTopoId }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[]; highlightedTopoId?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+    const highlightMarkerRef = useRef<mapboxgl.Marker | null>(null);
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     
     if (!mapboxToken) {
@@ -197,6 +198,66 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
             mapInstanceRef.current?.remove();
         };
     }, []);
+
+    // Effect to handle highlighting a specific topo
+    useEffect(() => {
+        if (!highlightedTopoId || !mapInstanceRef.current) return;
+        
+        const highlightedTopo = topoPoints.find(tp => tp.id === highlightedTopoId);
+        if (!highlightedTopo) return;
+
+        // Remove existing highlight marker
+        if (highlightMarkerRef.current) {
+            highlightMarkerRef.current.remove();
+        }
+
+        // Create a pulsing marker element
+        const el = document.createElement('div');
+        el.className = 'highlighted-marker';
+        el.style.cssText = `
+            width: 30px;
+            height: 30px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(255,0,0,0.5);
+            animation: pulse 2s infinite;
+        `;
+
+        // Add animation keyframes if not already added
+        if (!document.getElementById('pulse-animation')) {
+            const style = document.createElement('style');
+            style.id = 'pulse-animation';
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.2); opacity: 0.7; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Create and add the marker
+        highlightMarkerRef.current = new mapboxgl.Marker(el)
+            .setLngLat([highlightedTopo.longitude, highlightedTopo.latitude])
+            .setPopup(
+                new mapboxgl.Popup({ offset: 25 })
+                    .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
+            )
+            .addTo(mapInstanceRef.current);
+
+        // Fly to the highlighted location
+        mapInstanceRef.current.flyTo({
+            center: [highlightedTopo.longitude, highlightedTopo.latitude],
+            zoom: 14,
+            essential: true
+        });
+
+        // Open the popup
+        highlightMarkerRef.current.togglePopup();
+
+    }, [highlightedTopoId, topoPoints]);
 
     
 

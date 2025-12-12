@@ -27,6 +27,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   const [activeTab, setActiveTab] = useState<string>("areas");
   const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
   const [topos, setTopos] = useState<WallTopo[]>([]);
+  const [highlightedTopoId, setHighlightedTopoId] = useState<string | undefined>(undefined);
 
 
   useEffect ( () => {
@@ -196,10 +197,14 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
             selectedArea={selectedArea}
             setLoading={setLoading}
             setProgress={setProgress}
+            onShowTopoOnMap={(topoId) => {
+              setHighlightedTopoId(topoId);
+              setActiveTab('map');
+            }}
           />
         </TabsContent>
         <TabsContent value="map">
-          <MapView topoPoints={topoPoints} onValueChange={setActiveTab} onAreaChange={handleAreaChange} areas={areas}/>
+          <MapView topoPoints={topoPoints} onValueChange={setActiveTab} onAreaChange={handleAreaChange} areas={areas} highlightedTopoId={highlightedTopoId}/>
         </TabsContent>
       </Tabs>
       {loading &&

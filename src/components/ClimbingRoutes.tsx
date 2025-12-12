@@ -22,9 +22,10 @@ type ClimbingRoutesProps = {
     topos: WallTopo[];
     setLoading: (arg: boolean)=> void
     setProgress: (arg: number)=> void
+    onShowTopoOnMap: (topoId: string) => void;
 };
 
-export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos, setLoading, setProgress}: ClimbingRoutesProps) {
+export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAreaChange, sessionToken, selectedCrag, onCragChange, routes, topos, setLoading, setProgress, onShowTopoOnMap}: ClimbingRoutesProps) {
 
     const [selectedRoute, setSelectedRoute] = useState<ClimbingRoute>();
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
@@ -243,7 +244,17 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 
             return (
                 <div key={topo.id} className="flex flex-col gap-2 max-w-full">
-                    <h2>{topo.description}</h2>
+                    <div className="flex items-center gap-2">
+                        <h2 className="flex-1">{topo.description}</h2>
+                        <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => onShowTopoOnMap(topo.id)}
+                            className="shrink-0"
+                        >
+                            📍 Map
+                        </Button>
+                    </div>
                     <div className="flex flex-col lg:flex-row lg:items-center">
                         { sessionToken && (
                         <>
@@ -286,7 +297,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         </colgroup>
                         <thead>
                             <tr className="text-gray-700">
-                                <th className="text-start whitespace-nowrap">No in Topo</th>
+                                <th className="text-start whitespace-nowrap">#</th>
                                 <th className="text-start">Name</th>
                                 <th className="text-end whitespace-nowrap">Grade</th>
                                 <th className="text-end whitespace-nowrap">Length</th>
