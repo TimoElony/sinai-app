@@ -216,6 +216,17 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
 
         console.log('Coordinates:', highlightedTopo.longitude, highlightedTopo.latitude);
 
+        // Ensure coordinates are numbers
+        const lng = parseFloat(String(highlightedTopo.longitude));
+        const lat = parseFloat(String(highlightedTopo.latitude));
+        
+        if (isNaN(lng) || isNaN(lat)) {
+            console.error('Invalid coordinates:', { lng, lat, original: highlightedTopo });
+            return;
+        }
+        
+        console.log('Parsed coordinates:', lng, lat);
+
         // Remove existing highlight marker
         if (highlightMarkerRef.current) {
             highlightMarkerRef.current.remove();
@@ -253,7 +264,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
             element: el,
             anchor: 'center'
         })
-            .setLngLat([highlightedTopo.longitude, highlightedTopo.latitude])
+            .setLngLat([lng, lat])
             .setPopup(
                 new mapboxgl.Popup({ offset: 25 })
                     .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
@@ -262,13 +273,16 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
 
         // Fly to the highlighted location
         mapInstanceRef.current.flyTo({
-            center: [highlightedTopo.longitude, highlightedTopo.latitude],
+            center: [lng, lat],
             zoom: 14,
             essential: true
         });
 
         // Open the popup
         highlightMarkerRef.current.togglePopup();
+        // position the marker correctly
+        highlightMarkerRef.current.setLngLat([lng, lat]);
+
 
     }, [highlightedTopoId, topoPoints]);
 
