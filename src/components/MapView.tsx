@@ -8,7 +8,6 @@ import * as turf from '@turf/turf';
 export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas, highlightedTopoId }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[]; highlightedTopoId?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
-    const highlightMarkerRef = useRef<mapboxgl.Marker | null>(null);
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     
     if (!mapboxToken) {
@@ -238,48 +237,43 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
         
         console.log('Parsed coordinates:', lng, lat);
 
-        // Remove existing highlight marker
-        if (highlightMarkerRef.current) {
-            highlightMarkerRef.current.remove();
+        // Remove existing highlight layer if it exists
+        if (mapInstanceRef.current.getLayer('highlighted-topo')) {
+            mapInstanceRef.current.removeLayer('highlighted-topo');
+        }
+        if (mapInstanceRef.current.getSource('highlighted-topo')) {
+            mapInstanceRef.current.removeSource('highlighted-topo');
         }
 
-        // Create a pulsing marker element
-        const el = document.createElement('div');
-        el.className = 'highlighted-marker';
-        el.style.cssText = `
-            width: 30px;
-            height: 30px;
-            background-color: #ff0000;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 0 10px rgba(255,0,0,0.5);
-            animation: pulse 2s infinite;
-        `;
+        // Add source for highlighted topo
+        mapInstanceRef.current.addSource('highlighted-topo', {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                properties: {
+                    description: highlightedTopo.description,
+                    climbing_area_name: highlightedTopo.climbing_area_name,
+                },
+                geometry: {
+                    type: 'Point',
+                    coordinates: [lng, lat],
+                },
+            },
+        });
 
-        // Add animation keyframes if not already added
-        if (!document.getElementById('pulse-animation')) {
-            const style = document.createElement('style');
-            style.id = 'pulse-animation';
-            style.textContent = `
-                @keyframes pulse {
-                    0% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(1.2); opacity: 0.7; }
-                    100% { transform: scale(1); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
-        // Create and add the marker
-        const marker = new mapboxgl.Marker(el, { anchor: 'center' });
-        marker.setLngLat([lng, lat]);
-        marker.setPopup(
-            new mapboxgl.Popup({ offset: 25 })
-                .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
-        );
-        marker.addTo(mapInstanceRef.current);
-        
-        highlightMarkerRef.current = marker;
+        // Add pulsing circle layer for highlighted topo
+        mapInstanceRef.current.addLayer({
+            id: 'highlighted-topo',
+            type: 'circle',
+            source: 'highlighted-topo',
+            paint: {
+                'circle-radius': 20,
+                'circle-color': '#ff0000',
+                'circle-opacity': 0.8,
+                'circle-stroke-width': 3,
+                'circle-stroke-color': '#ffffff',
+            },
+        });
 
         // Fly to the highlighted location
         mapInstanceRef.current.flyTo({
@@ -288,11 +282,16 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
             essential: true
         });
 
-        // Open the popup after a short delay
-        setTimeout(() => {
-            highlightMarkerRef.current?.togglePopup();
-        }, 100);
+        // Show popup on the highlighted point
+        const popup = new mapboxgl.Popup({ offset: 25 })
+            .setLngLat([lng, lat])
+            .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
+            .addTo(mapInstanceRef.current);
 
+        // Cleanup function to remove highlight when component unmounts or topoId changes
+        return () => {
+            popup.remove();
+        };
 
     }, [highlightedTopoId, topoPoints]);
 
