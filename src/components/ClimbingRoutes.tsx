@@ -181,7 +181,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
             <h3>Select Area you want to see Topos of</h3>
             <select className="bg-gray-200 p-2 rounded-lg shadow-md" value={areaDetails?.name || 'none selected'} onChange={handleAreaChange}>
                 <option key="none selected" value='none selected'>none selected</option>
-                {areas.map((area) => {
+                {areas && Array.isArray(areas) && areas.map((area) => {
                     return(
                         <option key={area.id} value={area.name}>{area.name}</option>
                     );
