@@ -291,9 +291,9 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     <table className="table-fixed w-full">
                         <colgroup>
                             <col className="w-8" />
-                            <col className="w-70" />
-                            <col className="w-11" />
-                            <col className="w-11" />
+                            <col className="w-60" />
+                            <col className="w-13" />
+                            <col className="w-13" />
                         </colgroup>
                         <thead>
                             <tr className="text-gray-700">
