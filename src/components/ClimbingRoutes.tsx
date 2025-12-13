@@ -291,10 +291,10 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     <table className="table-fixed w-full">
                         <thead>
                             <tr className="text-gray-700">
-                                <th className="text-start whitespace-nowrap w-8">#</th>
-                                <th className="text-start">Name</th>
-                                <th className="text-end whitespace-nowrap w-12">Grade</th>
-                                <th className="text-end whitespace-nowrap w-13">Length</th>
+                                <th className="text-start whitespace-nowrap w-1/10">#</th>
+                                <th className="text-start w-3/5">Name</th>
+                                <th className="text-end whitespace-nowrap w-1/5">Grade</th>
+                                <th className="text-end whitespace-nowrap w-1/5">Length</th>
                             </tr>
                         </thead>
                     <tbody>
