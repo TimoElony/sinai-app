@@ -294,7 +294,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                                 <th className="text-start whitespace-nowrap w-9">#</th>
                                 <th className="text-start">Name</th>
                                 <th className="text-end whitespace-nowrap w-12">Grade</th>
-                                <th className="text-end whitespace-nowrap w-12">Length</th>
+                                <th className="text-end whitespace-nowrap w-13">Length</th>
                             </tr>
                         </thead>
                     <tbody>

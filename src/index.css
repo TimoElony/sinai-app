@@ -7,7 +7,7 @@
 }
 
 th, td {
-  @apply p-3 text-xs md:text-sm;
+  @apply py-3 px-1 text-xs md:text-sm;
   /* Ensure table cells wrap long content instead of forcing horizontal scroll */
   overflow-wrap: break-word;
   word-break: break-word;
