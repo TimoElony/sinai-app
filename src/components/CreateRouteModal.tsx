@@ -223,7 +223,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                                 <FormItem>
                                     <FormLabel>First Ascent Day (optional)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="Day (1-31, leave 0 if unknown)" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
+                                        <Input type="number" placeholder="Day (0-31, 0 if unknown)" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

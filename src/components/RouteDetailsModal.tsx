@@ -32,7 +32,11 @@ export default function RouteDetailsModal({name, grade, length, bolts, pitches, 
     if (!faYear || !faMonth) return "Unknown";
     
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const monthStr = monthNames[faMonth - 1] || faMonth.toString();
+    
+    // Validate month is in range before accessing array
+    if (faMonth < 1 || faMonth > 12) return "Unknown";
+    
+    const monthStr = monthNames[faMonth - 1];
     
     if (faDay && faDay > 0) {
       return `${faDay} ${monthStr} ${faYear}`;
