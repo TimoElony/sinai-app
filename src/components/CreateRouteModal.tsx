@@ -82,7 +82,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                         setters,
                         fa_year,
                         fa_month,
-                        fa_day: fa_day || null,
+                        fa_day: fa_day && fa_day > 0 ? fa_day : null,
                     }),
             });
             
