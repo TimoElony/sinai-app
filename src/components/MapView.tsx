@@ -8,6 +8,7 @@ import * as turf from '@turf/turf';
 export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas, highlightedTopoId }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[]; highlightedTopoId?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+    const currentPopupRef = useRef<mapboxgl.Popup | null>(null);
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     
     if (!mapboxToken) {
@@ -114,6 +115,40 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                         }
                     });
 
+                    // Add label for area name
+                    if (areaHull) {
+                        mapInstanceRef.current?.addSource(`area-label-${area.name}`, {
+                            type: 'geojson',
+                            data: {
+                                type: 'Feature',
+                                properties: {
+                                    name: area.name
+                                },
+                                geometry: areaHull.geometry
+                            }
+                        });
+
+                        mapInstanceRef.current?.addLayer({
+                            id: `area-label-${area.name}`,
+                            type: 'symbol',
+                            source: `area-label-${area.name}`,
+                            layout: {
+                                'text-field': ['get', 'name'],
+                                'text-size': 14,
+                                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                                'text-anchor': 'center',
+                                'text-allow-overlap': false,
+                                'text-ignore-placement': false
+                            },
+                            paint: {
+                                'text-color': area.color,
+                                'text-halo-color': '#ffffff',
+                                'text-halo-width': 2
+                            },
+                            maxzoom: 12,
+                        });
+                    }
+
                     mapInstanceRef.current?.addLayer({
                     id: `area-topos${area.name}`,
                     type: 'circle',
@@ -122,11 +157,39 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                         'circle-radius': 8,
                         'circle-color': area.color,
                         'circle-opacity': 0.6,
+                        'circle-stroke-width': 2,
+                        'circle-stroke-color': '#ffffff',
+                    },
+                    minzoom: 12,
+                });
+
+                // Add labels for topos
+                mapInstanceRef.current?.addLayer({
+                    id: `area-topo-labels${area.name}`,
+                    type: 'symbol',
+                    source: `area-collection${area.name}`,
+                    layout: {
+                        'text-field': ['get', 'name'],
+                        'text-size': 11,
+                        'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+                        'text-anchor': 'top',
+                        'text-offset': [0, 1.2],
+                        'text-allow-overlap': false,
+                    },
+                    paint: {
+                        'text-color': '#000000',
+                        'text-halo-color': '#ffffff',
+                        'text-halo-width': 1.5
                     },
                     minzoom: 12,
                 });
 
                 mapInstanceRef.current?.on('click', `area-polygon${area.name}`, (e) => {
+                    // Close any existing popup
+                    if (currentPopupRef.current) {
+                        currentPopupRef.current.remove();
+                    }
+
                     const geometry = e.features?.[0].geometry;
                     let coordinates: [number, number] | undefined;
                     if (geometry?.type === 'Polygon') {
@@ -139,14 +202,17 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                         const popup = new mapboxgl.Popup()
                             .setLngLat(coordinates)
                             .setHTML(`
-                                <div>
-                                    <p><strong>${area.name}</strong>: ${description}, ${area.route_count} Routes</p>
-                                    <button id="navigate-button" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Routes in this area</button>
+                                <div style="font-family: sans-serif;">
+                                    <p style="margin-bottom: 8px;"><strong>${area.name}</strong></p>
+                                    <p style="margin-bottom: 8px; color: #666;">${description} • ${area.route_count} Routes</p>
+                                    <button id="navigate-button" style="width: 100%; margin-top: 8px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Routes</button>
                                 </div>
                             `)
                             .setMaxWidth('300px')
                             .setOffset(10)
                             .addTo(mapInstanceRef.current!);
+
+                        currentPopupRef.current = popup;
 
                         // Add event listener to the button inside the popup
                         popup?.getElement()?.querySelector('#navigate-button')?.addEventListener('click',() => {
@@ -158,6 +224,11 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                 });
 
                 mapInstanceRef.current?.on('click', `area-topos${area.name}`, (e) => {
+                    // Close any existing popup
+                    if (currentPopupRef.current) {
+                        currentPopupRef.current.remove();
+                    }
+
                     const geometry = e.features?.[0].geometry;
                     let coordinates: [number, number] | undefined;
                     if (geometry?.type === 'Point') {
@@ -166,27 +237,70 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                     const description = e.features?.[0].properties?.name;
                     const climbingAreaName = area.name;
 
+                    // Find the topo point to get the crag information
+                    const topoPoint = topoPoints.find(tp => 
+                        tp.description === description && 
+                        tp.climbing_area_name === climbingAreaName &&
+                        coordinates && 
+                        Math.abs(Number(tp.longitude) - coordinates[0]) < 0.0001 &&
+                        Math.abs(Number(tp.latitude) - coordinates[1]) < 0.0001
+                    );
+
                     if (coordinates) {
+                        const lat = coordinates[1].toFixed(6);
+                        const lon = coordinates[0].toFixed(6);
+                        const cragName = topoPoint?.climbing_sector || 'Unknown';
+
                         const popup = new mapboxgl.Popup()
                             .setLngLat(coordinates)
                             .setHTML(`
-                                <div>
-                                    <p><strong>${area.name}</strong>: Topo: ${description}</p>
-                                    <button id="navigate-button" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Routes in this area</button>
+                                <div style="font-family: sans-serif;">
+                                    <p style="margin-bottom: 8px;"><strong>Topo: ${description}</strong></p>
+                                    <p style="margin-bottom: 4px; color: #666; font-size: 13px;">Area: ${climbingAreaName}</p>
+                                    <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Crag: ${cragName}</p>
+                                    <p style="margin-bottom: 8px; color: #888; font-size: 12px;">Lat: ${lat}, Lon: ${lon}</p>
+                                    <button id="navigate-to-area-button" style="width: 100%; margin-top: 4px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Area Routes</button>
+                                    <button id="navigate-to-crag-button" style="width: 100%; margin-top: 4px; background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Crag Routes</button>
                                 </div>
                             `)
                             .setMaxWidth('300px')
                             .setOffset(10)
                             .addTo(mapInstanceRef.current!);
 
-                        // Add event listener to the button inside the popup
-                        popup?.getElement()?.querySelector('#navigate-button')?.addEventListener('click',() => {
-                            console.log('Button clicked', climbingAreaName);
+                        currentPopupRef.current = popup;
+
+                        // Add event listener to the area button
+                        popup?.getElement()?.querySelector('#navigate-to-area-button')?.addEventListener('click',() => {
+                            console.log('Navigate to area clicked', climbingAreaName);
                             onAreaChange(climbingAreaName || 'none');
                             onValueChange('routes');
                         });
+
+                        // Add event listener to the crag button
+                        popup?.getElement()?.querySelector('#navigate-to-crag-button')?.addEventListener('click',() => {
+                            console.log('Navigate to crag clicked', climbingAreaName, cragName);
+                            onAreaChange(climbingAreaName || 'none');
+                            onValueChange('routes');
+                            // The crag selection will be handled by the Dashboard component
+                        });
                     }
                 });
+                });
+
+                // Add click handler on map to close popup when clicking on empty space
+                mapInstanceRef.current.on('click', (e) => {
+                    // Check if the click was on any feature layer
+                    const features = mapInstanceRef.current?.queryRenderedFeatures(e.point);
+                    const isFeatureClick = features?.some(f => 
+                        (f.source && typeof f.source === 'string' && 
+                         (f.source.startsWith('area-polygon') || f.source.startsWith('area-collection')))
+                    );
+                    
+                    // If clicking on empty space (no feature), close the popup
+                    if (!isFeatureClick && currentPopupRef.current) {
+                        currentPopupRef.current.remove();
+                        currentPopupRef.current = null;
+                    }
                 });
 
     
