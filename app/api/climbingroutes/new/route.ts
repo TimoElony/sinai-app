@@ -11,11 +11,11 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { name, grade, bolts, length, info, area, crag, setters } = await request.json();
+        const { name, grade, bolts, length, info, area, crag, setters, fa_year, fa_month, fa_day } = await request.json();
         
         const newRoute = await pool.query(
-            "INSERT INTO climbing_routes (name, fa_grade, bolts, length, plain_description, climbing_area, climbing_sector, setters, grade_best_guess) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING name, id",
-            [name, grade, bolts, length, info, area, crag, setters, grade]
+            "INSERT INTO climbing_routes (name, fa_grade, bolts, length, plain_description, climbing_area, climbing_sector, setters, grade_best_guess, fa_year, fa_month, fa_day) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING name, id",
+            [name, grade, bolts, length, info, area, crag, setters, grade, fa_year, fa_month, fa_day]
         );
         
         await pool.query(

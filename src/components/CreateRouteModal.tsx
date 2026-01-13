@@ -32,6 +32,9 @@ const formSchema = z.object({
     area: z.string().min(2).max(290),
     crag: z.string().min(2).max(200),
     setters: z.string().min(2).max(200),
+    fa_year: z.number().min(1900).max(2100),
+    fa_month: z.number().min(1).max(12),
+    fa_day: z.number().min(0).max(31).optional(),
 });
 
 
@@ -47,7 +50,10 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
             info: "",
             area: selectedArea,
             crag: selectedCrag,
-            setters: ""
+            setters: "",
+            fa_year: new Date().getFullYear(),
+            fa_month: new Date().getMonth() + 1,
+            fa_day: 0,
         },
     });
 
@@ -56,7 +62,7 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
         setIsOpen(false);
         setProgress(50);
         toast("submitting...:"+values.name);
-        const {name, grade, length, bolts, info, area, crag, setters} = values;
+        const {name, grade, length, bolts, info, area, crag, setters, fa_year, fa_month, fa_day} = values;
 
         try {
             const response = await fetch('/api/climbingroutes/new', {
@@ -74,6 +80,9 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                         area,
                         crag,
                         setters,
+                        fa_year,
+                        fa_month,
+                        fa_day: fa_day && fa_day > 0 ? fa_day : null,
                     }),
             });
             
@@ -176,6 +185,45 @@ export default function CreateRouteModal({sessionToken, selectedCrag, selectedAr
                                     <FormLabel>Route Setters</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Setters" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="fa_year"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>First Ascent Year *</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Year" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="fa_month"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>First Ascent Month *</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Month (1-12)" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="fa_day"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>First Ascent Day (optional)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Day (0-31, 0 if unknown)" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

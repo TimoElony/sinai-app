@@ -20,10 +20,30 @@ interface RouteDetailsProps {
     approach: string;
     descent: string;
     credit: string;
+    faYear?: number;
+    faMonth?: number;
+    faDay?: number;
 }
 
-export default function RouteDetailsModal({name, grade, length, bolts, pitches, faGrade, description, approach, descent, credit}: RouteDetailsProps) {
+export default function RouteDetailsModal({name, grade, length, bolts, pitches, faGrade, description, approach, descent, credit, faYear, faMonth, faDay}: RouteDetailsProps) {
   
+  // Format the first ascent date
+  const formatFADate = () => {
+    if (!faYear || !faMonth) return "Unknown";
+    
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    // Validate month is in range before accessing array
+    if (faMonth < 1 || faMonth > 12) return "Unknown";
+    
+    const monthStr = monthNames[faMonth - 1];
+    
+    if (faDay && faDay > 0) {
+      return `${faDay} ${monthStr} ${faYear}`;
+    }
+    return `${monthStr} ${faYear}`;
+  };
+
   return(
     <Dialog>
     <DialogTrigger><Button variant="link">{name}</Button></DialogTrigger>
@@ -36,6 +56,7 @@ export default function RouteDetailsModal({name, grade, length, bolts, pitches, 
             <p><strong>Bolts:</strong> {bolts}</p>
             <p><strong>Pitches:</strong> {pitches}</p>
             <p><strong>First Ascent Grade:</strong> {faGrade}</p>
+            <p><strong>First Ascent Date:</strong> {formatFADate()}</p>
             <p><strong>Description:</strong> {description}</p>
             <p><strong>Access:</strong> {approach}</p>
             <p><strong>Descent:</strong> {descent}</p>
