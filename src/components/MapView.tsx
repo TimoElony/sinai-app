@@ -400,7 +400,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
             });
 
             // Show popup on the highlighted point
-            const popup = new mapboxgl.Popup({ offset: 25 })
+            new mapboxgl.Popup({ offset: 25 })
                 .setLngLat([lng, lat])
                 .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
                 .addTo(map);
