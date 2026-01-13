@@ -288,6 +288,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                 });
 
                 // Add click handler on map to close popup when clicking on empty space
+                // This is registered once, outside the areas loop
                 mapInstanceRef.current.on('click', (e) => {
                     // Check if the click was on any feature layer
                     const features = mapInstanceRef.current?.queryRenderedFeatures(e.point);
@@ -319,6 +320,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
         
 
         return () => {
+            currentPopupRef.current?.remove();
             mapInstanceRef.current?.remove();
         };
     }, []);
@@ -399,11 +401,18 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                 essential: true
             });
 
+            // Close any existing popup before showing the highlighted topo popup
+            if (currentPopupRef.current) {
+                currentPopupRef.current.remove();
+            }
+
             // Show popup on the highlighted point
-            new mapboxgl.Popup({ offset: 25 })
+            const popup = new mapboxgl.Popup({ offset: 25 })
                 .setLngLat([lng, lat])
                 .setHTML(`<strong>${highlightedTopo.description}</strong><br>${highlightedTopo.climbing_area_name}`)
                 .addTo(map);
+
+            currentPopupRef.current = popup;
         };
 
         // Check if map style is loaded, if not wait for it
