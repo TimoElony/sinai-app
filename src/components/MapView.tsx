@@ -559,7 +559,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         );
                         if (matchingSourceId) {
                             sourceId = matchingSourceId;
-                            source = sources[matchingSourceId];
+                            source = map.getSource(matchingSourceId);
                             console.log(`Found fallback source: ${matchingSourceId} for chart ${cragName}`);
                         }
                     }
