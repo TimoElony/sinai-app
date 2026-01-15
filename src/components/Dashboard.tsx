@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 
 
-export default function Dashboard({sessionToken}: {sessionToken: string}) {
+export default function Dashboard({sessionToken, initialArea}: {sessionToken: string; initialArea?: string}) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(13);
   const [areas, setAreas] = useState<ClimbingArea[]>([]);
@@ -24,7 +24,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
   const [selectedCrag, setSelectedCrag] = useState<string | undefined>(undefined);
   const [areaDetails, setAreaDetails] = useState<AreaDetails | undefined>(undefined);
   const [topoPoints, setTopopoints] = useState<TopoPoints[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("areas");
+  const [activeTab, setActiveTab] = useState<string>("routes");
   const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
   const [topos, setTopos] = useState<WallTopo[]>([]);
   const [highlightedTopoId, setHighlightedTopoId] = useState<string | undefined>(undefined);
@@ -40,6 +40,19 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
       toast.error('error fetching areas or points');
     }
   },[]);
+
+  // Handle initial area from URL
+  useEffect(() => {
+    if (initialArea && areas.length > 0 && !selectedArea) {
+      // Find matching area (case-insensitive)
+      const matchingArea = areas.find(
+        area => area.name.toLowerCase() === initialArea.toLowerCase()
+      );
+      if (matchingArea) {
+        handleAreaChange(matchingArea.name);
+      }
+    }
+  }, [initialArea, areas]);
 
   const fetchAreas = async () => {
     try {
