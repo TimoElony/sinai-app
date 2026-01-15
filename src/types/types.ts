@@ -7,6 +7,13 @@ export type TopoPoints = {
   climbing_sector: string;
 }
 
+export type CragStats = {
+  easy: number;
+  medium: number;
+  hard: number;
+  total: number;
+}
+
 export type ClimbingArea = {
   id: number;
   name: string;

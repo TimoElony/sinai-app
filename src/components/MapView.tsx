@@ -1,19 +1,74 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { ClimbingArea, TopoPoints } from '@/src/types/types';
+import { ClimbingArea, TopoPoints, CragStats } from '@/src/types/types';
 import * as turf from '@turf/turf';
 
 export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCragChange, areas, highlightedTopoId, selectedArea }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void; onCragChange?: (selectedValue: string, areaName?: string) => void; areas: ClimbingArea[]; highlightedTopoId?: string; selectedArea?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const currentPopupRef = useRef<mapboxgl.Popup | null>(null);
+    const [cragStats, setCragStats] = useState<Record<string, Record<string, CragStats>>>({});
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     
     if (!mapboxToken) {
         console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set. Map functionality will be disabled.');
     }
+
+    // Fetch crag statistics
+    useEffect(() => {
+        const fetchCragStats = async () => {
+            try {
+                console.log('Fetching crag stats...');
+                const response = await fetch('/api/geodata/crag-stats');
+                const data = await response.json();
+                console.log('Crag stats loaded:', data);
+                console.log('Number of areas with stats:', Object.keys(data).length);
+                setCragStats(data);
+            } catch (error) {
+                console.error('Error fetching crag stats:', error);
+            }
+        };
+        fetchCragStats();
+    }, []);
+
+    // Generate SVG bar chart as data URI
+    const generateBarChart = (stats: CragStats) => {
+        const barWidth = 26;  // Increased from 22 (20% bigger)
+        const barSpacing = 5;  // Increased from 4
+        const chartHeight = 72; // Increased from 60 (20% bigger)
+        const labelHeight = 36; // Increased from 30 (20% bigger)
+        const totalHeight = chartHeight + labelHeight;
+        const maxCount = Math.max(stats.easy, stats.medium, stats.hard, 1);
+        
+        const easyHeight = (stats.easy / maxCount) * chartHeight;
+        const mediumHeight = (stats.medium / maxCount) * chartHeight;
+        const hardHeight = (stats.hard / maxCount) * chartHeight;
+        
+        const totalWidth = barWidth * 3 + barSpacing * 2;
+        
+        const svg = `
+            <svg width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg">
+                <!-- Bars -->
+                <rect x="0" y="${chartHeight - easyHeight}" width="${barWidth}" height="${easyHeight}" fill="#22c55e" stroke="#fff" stroke-width="2"/>
+                <rect x="${barWidth + barSpacing}" y="${chartHeight - mediumHeight}" width="${barWidth}" height="${mediumHeight}" fill="#eab308" stroke="#fff" stroke-width="2"/>
+                <rect x="${(barWidth + barSpacing) * 2}" y="${chartHeight - hardHeight}" width="${barWidth}" height="${hardHeight}" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+                
+                <!-- Count labels on bars with white stroke -->
+                <text x="${barWidth / 2}" y="${chartHeight - easyHeight / 2 + 5}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">${stats.easy}</text>
+                <text x="${barWidth + barSpacing + barWidth / 2}" y="${chartHeight - mediumHeight / 2 + 5}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">${stats.medium}</text>
+                <text x="${(barWidth + barSpacing) * 2 + barWidth / 2}" y="${chartHeight - hardHeight / 2 + 5}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">${stats.hard}</text>
+                
+                <!-- Grade labels with white stroke -->
+                <text x="${barWidth / 2}" y="${chartHeight + 22}" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">≤5c+</text>
+                <text x="${barWidth + barSpacing + barWidth / 2}" y="${chartHeight + 22}" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">6a-6c+</text>
+                <text x="${(barWidth + barSpacing) * 2 + barWidth / 2}" y="${chartHeight + 22}" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">≥7a</text>
+            </svg>
+        `;
+        
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    };
 
     useEffect(() => {
         if (!mapboxToken) {
@@ -150,6 +205,121 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         });
                     }
 
+                    // Group topos by crag
+                    const cragGroups = new Map<string, TopoPoints[]>();
+                    areaPoints.forEach(point => {
+                        const cragName = point.climbing_sector || 'Unknown Crag';
+                        if (!cragGroups.has(cragName)) {
+                            cragGroups.set(cragName, []);
+                        }
+                        cragGroups.get(cragName)!.push(point);
+                    });
+
+                    // Create convex hulls and labels for each crag
+                    cragGroups.forEach((cragTopos, cragName) => {
+                        const cragCollection = turf.featureCollection(cragTopos.map((point)=>
+                            turf.point([Number(point.longitude), Number(point.latitude)], { name: point.description })
+                        ));
+                        
+                        if (cragCollection.features.length < 3) {
+                            const x = cragCollection.features[0]?.geometry.coordinates[0];
+                            const y = cragCollection.features[0]?.geometry.coordinates[1];
+                            cragCollection.features.push(turf.point([x + 0.00005, y]));
+                            cragCollection.features.push(turf.point([x + 0.00005, y + 0.00005]));
+                            cragCollection.features.push(turf.point([x, y + 0.00005]));
+                        }
+
+                        const cragConvexHull = turf.convex(cragCollection);
+                        const cragHull = cragConvexHull 
+                            ? turf.buffer(cragConvexHull, 0.5, { units: 'kilometers' }) 
+                            : null;
+
+                        if (cragHull) {
+                            const cragSourceId = `crag-polygon-${area.name}-${cragName}`;
+                            const cragLayerId = `crag-layer-${area.name}-${cragName}`;
+                            const cragLabelId = `crag-label-${area.name}-${cragName}`;
+
+                            // Add source for crag boundary
+                            mapInstanceRef.current?.addSource(cragSourceId, {
+                                type: 'geojson',
+                                data: cragHull
+                            });
+
+                            // Add line layer for crag boundary
+                            mapInstanceRef.current?.addLayer({
+                                id: cragLayerId,
+                                type: 'line',
+                                source: cragSourceId,
+                                layout: {
+                                    'line-join': 'round',
+                                    'line-cap': 'round'
+                                },
+                                paint: {
+                                    'line-color': '#ffffff',
+                                    'line-width': 2,
+                                    'line-dasharray': [4, 4],
+                                },
+                                minzoom: 11,
+                            });
+
+                            // Add label source for crag name - position on boundary
+                            // Get the northernmost point on the boundary for label placement
+                            const coords = (cragHull.geometry as any).coordinates[0];
+                            const northmostPoint = coords.reduce((max: any, point: any) => 
+                                point[1] > max[1] ? point : max
+                            );
+                            const labelPoint = turf.point(northmostPoint);
+                            
+                            mapInstanceRef.current?.addSource(`${cragLabelId}-source`, {
+                                type: 'geojson',
+                                data: labelPoint
+                            });
+
+                            // Find the northeasternmost topo for chart placement
+                            const northeastPoint = cragTopos.reduce((max, point) => {
+                                const maxScore = Number(max.longitude) + Number(max.latitude);
+                                const currentScore = Number(point.longitude) + Number(point.latitude);
+                                return currentScore > maxScore ? point : max;
+                            });
+                            
+                            // Create a point offset northeast from the northeasternmost topo
+                            const chartLng = Number(northeastPoint.longitude) + 0.002; // ~200m east
+                            const chartLat = Number(northeastPoint.latitude) + 0.002; // ~200m north
+                            const chartPoint = turf.point([chartLng, chartLat], {
+                                cragName: cragName,
+                                areaName: area.name,
+                                climbing_area_name: area.name,
+                                climbing_sector: cragName
+                            });
+                            
+                            mapInstanceRef.current?.addSource(`${cragLabelId}-chart-source`, {
+                                type: 'geojson',
+                                data: chartPoint
+                            });
+
+                            // Add label layer for crag name
+                            mapInstanceRef.current?.addLayer({
+                                id: cragLabelId,
+                                type: 'symbol',
+                                source: `${cragLabelId}-source`,
+                                layout: {
+                                    'text-field': cragName,
+                                    'text-size': 12,
+                                    'text-font': ['Open Sans SemiBold', 'Arial Unicode MS Bold'],
+                                    'text-anchor': 'bottom',
+                                    'text-offset': [0, -1],
+                                    'text-allow-overlap': false,
+                                },
+                                paint: {
+                                    'text-color': '#ffffff',
+                                    'text-halo-color': '#333333',
+                                    'text-halo-width': 2
+                                },
+                                minzoom: 11,
+                            });
+                        }
+                    });
+
                     mapInstanceRef.current?.addLayer({
                     id: `area-topos${area.name}`,
                     type: 'circle',
@@ -161,7 +331,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         'circle-stroke-width': 2,
                         'circle-stroke-color': '#ffffff',
                     },
-                    minzoom: 12,
+                    minzoom: 11,
                 });
 
                 // Add labels for topos
@@ -182,7 +352,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         'text-halo-color': '#ffffff',
                         'text-halo-width': 1.5
                     },
-                    minzoom: 12,
+                    minzoom: 11,
                 });
 
                 mapInstanceRef.current?.on('click', `area-polygon${area.name}`, (e) => {
@@ -328,6 +498,162 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
             mapInstanceRef.current?.remove();
         };
     }, []);
+
+    // Effect to add bar charts when cragStats are loaded
+    useEffect(() => {
+        console.log('Bar chart effect triggered. Stats loaded:', Object.keys(cragStats).length > 0);
+        console.log('Map exists:', !!mapInstanceRef.current);
+        console.log('Areas count:', areas.length);
+        
+        if (!mapInstanceRef.current || Object.keys(cragStats).length === 0) {
+            console.log('Exiting early - no map or no stats');
+            return;
+        }
+        
+        const map = mapInstanceRef.current;
+        
+        const addCharts = () => {
+            if (!map.isStyleLoaded()) {
+                console.log('Map style not loaded yet, waiting...');
+                setTimeout(addCharts, 100);
+                return;
+            }
+
+            console.log('Adding bar charts to map...');
+            let chartsAdded = 0;
+
+            // Add charts for all crags that have stats AND have label sources (meaning they have topos)
+            areas.forEach(area => {
+                const areaStats = cragStats[area.name];
+                if (!areaStats) {
+                    console.log(`No stats for area: ${area.name}`);
+                    return;
+                }
+
+                Object.keys(areaStats).forEach(cragName => {
+                    const stats = areaStats[cragName];
+                    if (!stats || (stats.easy === 0 && stats.medium === 0 && stats.hard === 0)) {
+                        return;
+                    }
+
+                    const chartImageId = `chart-${area.name}-${cragName}`;
+                    const cragLabelId = `crag-label-${area.name}-${cragName}`;
+                    const chartLayerId = `${cragLabelId}-chart`;
+                    let sourceId = `${cragLabelId}-chart-source`;
+
+                    // Skip if already added
+                    if (map.hasImage(chartImageId) || map.getLayer(chartLayerId)) {
+                        return;
+                    }
+
+                    // Check if the chart source exists
+                    let source = map.getSource(sourceId);
+                    
+                    // If not found, try to find any chart source in this area
+                    if (!source) {
+                        const style = map.getStyle();
+                        const sources = style.sources || {};
+                        const areaLabel = `crag-label-${area.name}`;
+                        const matchingSourceId = Object.keys(sources).find(key => 
+                            key.startsWith(areaLabel) && key.endsWith('-chart-source')
+                        );
+                        if (matchingSourceId) {
+                            sourceId = matchingSourceId;
+                            source = sources[matchingSourceId];
+                            console.log(`Found fallback source: ${matchingSourceId} for chart ${cragName}`);
+                        }
+                    }
+
+                    // Only add chart if we have a source
+                    if (!source) {
+                        return;
+                    }
+
+                    const chartDataUri = generateBarChart(stats);
+                    const img = new Image();
+                    img.onload = () => {
+                        if (!map.hasImage(chartImageId)) {
+                            map.addImage(chartImageId, img);
+                            
+                            // Add layer
+                            if (!map.getLayer(chartLayerId)) {
+                                map.addLayer({
+                                    id: chartLayerId,
+                                    type: 'symbol',
+                                    source: sourceId,
+                                    layout: {
+                                        'icon-image': chartImageId,
+                                        'icon-size': 1,
+                                        'icon-anchor': 'center',
+                                        'icon-offset': [0, 0],
+                                        'icon-allow-overlap': true,
+                                    },
+                                    minzoom: 13,
+                                });
+                                chartsAdded++;
+                                console.log(`✓ Chart added for ${cragName}`);
+                                
+                                // Add click handler for popup
+                                map.on('click', chartLayerId, (e) => {
+                                    if (currentPopupRef.current) {
+                                        currentPopupRef.current.remove();
+                                    }
+                                    
+                                    const coordinates = e.lngLat;
+                                    const properties = e.features?.[0]?.properties;
+                                    const cragName = properties?.cragName || properties?.climbing_sector;
+                                    const areaName = properties?.areaName || properties?.climbing_area_name;
+                                    
+                                    const popup = new mapboxgl.Popup()
+                                        .setLngLat(coordinates)
+                                        .setHTML(`
+                                            <div style="font-family: sans-serif;">
+                                                <p style="margin-bottom: 8px;"><strong>${cragName}</strong></p>
+                                                <p style="margin-bottom: 8px; color: #666;">${areaName}</p>
+                                                <button id="navigate-button-crag" style="width: 100%; margin-top: 8px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Routes</button>
+                                            </div>
+                                        `)
+                                        .setMaxWidth('300px')
+                                        .setOffset(10)
+                                        .addTo(map);
+                                    
+                                    currentPopupRef.current = popup;
+                                    
+                                    // Add navigation button handler
+                                    setTimeout(() => {
+                                        const button = document.getElementById('navigate-button-crag');
+                                        if (button && onCragChange) {
+                                            button.addEventListener('click', () => {
+                                                onValueChange('routes');
+                                                onCragChange(cragName, areaName);
+                                                popup.remove();
+                                            });
+                                        }
+                                    }, 0);
+                                });
+                                
+                                // Change cursor on hover
+                                map.on('mouseenter', chartLayerId, () => {
+                                    map.getCanvas().style.cursor = 'pointer';
+                                });
+                                map.on('mouseleave', chartLayerId, () => {
+                                    map.getCanvas().style.cursor = '';
+                                });
+                            }
+                        }
+                    };
+                    img.onerror = (e) => {
+                        console.error(`Failed to load chart image for ${cragName}:`, e);
+                    };
+                    img.src = chartDataUri;
+                });
+            });
+            
+            console.log(`Finished processing. Total charts added: ${chartsAdded}`);
+        };
+        
+        addCharts();
+    }, [cragStats, areas]);
 
     // Effect to handle highlighting a specific topo
     useEffect(() => {
