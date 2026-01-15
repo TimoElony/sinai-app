@@ -35,6 +35,12 @@ jobs:
           endpoint = https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com
           EOF
       
+      - name: Test R2 connection
+        run: |
+          echo "Testing R2 connection..."
+          rclone lsd r2: || echo "Failed to list buckets"
+          rclone ls r2:sinai-backups/ || echo "Failed to access sinai-backups bucket"
+      
       - name: Create and upload database backup
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
