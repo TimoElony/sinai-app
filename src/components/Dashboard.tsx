@@ -66,7 +66,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         return;
       } else {
         setProgress(70);
-        await fetchDetails(selectedValue);
+        await fetchDetails(selectedValue, false);
         setSelectedArea(selectedValue);
         setProgress(80);
       }
@@ -80,7 +80,7 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
     
   }
 
-  const fetchDetails = async (area: string | undefined) => {
+  const fetchDetails = async (area: string | undefined, skipCragSelection: boolean = false) => {
     const areaData = areas.find((areaObj) => areaObj.name === area);
     try {
       if(areaData) {
@@ -88,10 +88,12 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         const responseData = await response.json();        
 
         setAreaDetails({...areaData, ...responseData});
-        if (responseData.crags.length <= 1 ) {
-          setSelectedCrag(area);
-        } else {
-          setSelectedCrag(responseData.crags[0].name); 
+        if (!skipCragSelection) {
+          if (responseData.crags.length <= 1 ) {
+            setSelectedCrag(area);
+          } else {
+            setSelectedCrag(responseData.crags[0].name); 
+          }
         }
 
       }
@@ -151,15 +153,21 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
         }
   }
 
-  const handleCragChange = async (selectedValue: string) => {
+  const handleCragChange = async (selectedValue: string, areaName?: string) => {
     setSelectedCrag(undefined);
     setLoading(true);
     setProgress(50);
     try {
-      if (!selectedArea) {
+      const area = areaName || selectedArea;
+      if (!area) {
         throw new Error("Area not selected");
       }
-      await fetchRoutesAndTopos(selectedArea, selectedValue);
+      // If areaName is provided (from map navigation), fetch area details but skip auto-crag selection
+      if (areaName && areaName !== selectedArea) {
+        await fetchDetails(areaName, true);
+        setSelectedArea(areaName);
+      }
+      await fetchRoutesAndTopos(area, selectedValue);
       setProgress(80);
     } catch (error) {
       console.error(error);
@@ -204,7 +212,15 @@ export default function Dashboard({sessionToken}: {sessionToken: string}) {
           />
         </TabsContent>
         <TabsContent value="map">
-          <MapView topoPoints={topoPoints} onValueChange={setActiveTab} onAreaChange={handleAreaChange} areas={areas} highlightedTopoId={highlightedTopoId}/>
+          <MapView 
+            topoPoints={topoPoints} 
+            onValueChange={setActiveTab} 
+            onAreaChange={handleAreaChange} 
+            onCragChange={handleCragChange}
+            areas={areas} 
+            highlightedTopoId={highlightedTopoId}
+            selectedArea={selectedArea}
+          />
         </TabsContent>
       </Tabs>
       {loading &&

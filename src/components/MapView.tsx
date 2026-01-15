@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { ClimbingArea, TopoPoints } from '@/src/types/types';
 import * as turf from '@turf/turf';
 
-export default function MapView ({ topoPoints, onValueChange, onAreaChange, areas, highlightedTopoId }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void ; areas: ClimbingArea[]; highlightedTopoId?: string }) {
+export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCragChange, areas, highlightedTopoId, selectedArea }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void; onCragChange?: (selectedValue: string, areaName?: string) => void; areas: ClimbingArea[]; highlightedTopoId?: string; selectedArea?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const currentPopupRef = useRef<mapboxgl.Popup | null>(null);
@@ -27,6 +27,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
             container: mapContainerRef.current,
             center: [34, 28.5],
             zoom: 8,
+            style: 'mapbox://styles/mapbox/satellite-v9',
         });
 
         if (mapInstanceRef.current != null) {
@@ -141,9 +142,9 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                                 'text-ignore-placement': false
                             },
                             paint: {
-                                'text-color': area.color,
+                                'text-color': '#000000',
                                 'text-halo-color': '#ffffff',
-                                'text-halo-width': 2
+                                'text-halo-width': 3
                             },
                             maxzoom: 12,
                         });
@@ -280,8 +281,11 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, area
                         popup?.getElement()?.querySelector('#navigate-to-crag-button')?.addEventListener('click',() => {
                             console.log('Navigate to crag clicked', climbingAreaName, cragName);
                             onAreaChange(climbingAreaName || 'none');
+                            if (onCragChange) {
+                                // Pass both area name and crag name to ensure area is set
+                                onCragChange(cragName, climbingAreaName);
+                            }
                             onValueChange('routes');
-                            // The crag selection will be handled by the Dashboard component
                         });
                     }
                 });
