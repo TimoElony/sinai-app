@@ -81,6 +81,8 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
         setProgress(70);
         await fetchDetails(selectedValue, false);
         setSelectedArea(selectedValue);
+        // Fetch all routes for the area to show accurate distribution
+        await fetchAllRoutesForArea(selectedValue);
         setProgress(80);
       }
 
@@ -113,6 +115,35 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
     } catch (error) {
       console.error("Error fetching area details:", error);
       throw new Error("Error fetching area Details");
+    }
+  };
+
+  const fetchAllRoutesForArea = async (areaName: string) => {
+    try {
+        if (!areaName) {
+            throw new Error("Area name is not provided");
+        }
+        
+        // Prepare fetch options based on authentication status
+        const fetchOptions: RequestInit = sessionToken
+            ? {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Authorization': `Bearer ${sessionToken}`
+                }
+              }
+            : {
+                cache: 'default'
+              };
+        
+        const timestamp = sessionToken ? `?t=${new Date().getTime()}` : '';
+        const response = await fetch(`/api/climbingroutes/${areaName}${timestamp}`, fetchOptions);
+        const routeData: ClimbingRoute[] = await response.json();
+        setRoutes(routeData);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error fetching routes for area");
     }
   };
 
@@ -203,7 +234,7 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
           <TabsTrigger value="map" className="w-[100%]">Map</TabsTrigger>
         </TabsList>
         <TabsContent value="areas">
-          <ClimbingAreas areaDetails={areaDetails} onAreaChange={handleAreaChange} areas={areas} selectedArea={selectedArea}  />
+          <ClimbingAreas areaDetails={areaDetails} onAreaChange={handleAreaChange} areas={areas} selectedArea={selectedArea} routes={routes} />
         </TabsContent>
         <TabsContent value="routes">
           <ClimbingRoutes 
