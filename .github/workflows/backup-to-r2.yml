@@ -1,0 +1,69 @@
+name: Monthly Database Backup to R2
+
+on:
+  schedule:
+    # Run on the 1st of every month at 2 AM UTC
+    - cron: '0 2 1 * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install PostgreSQL client and rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client rclone
+      
+      - name: Configure rclone for R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = $R2_ACCESS_KEY_ID
+          secret_access_key = $R2_SECRET_ACCESS_KEY
+          endpoint = https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com
+          EOF
+      
+      - name: Create and upload database backup
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        run: |
+          TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+          BACKUP_NAME="sinai-db-backup-${TIMESTAMP}.sql.gz"
+          
+          # Create compressed database dump
+          PGPASSWORD=$DB_PASSWORD pg_dump \
+              -h $DB_HOST \
+              -U $DB_USER \
+              -d $DB_NAME \
+              -v | gzip > "$BACKUP_NAME"
+          
+          # Upload to R2
+          rclone copy "$BACKUP_NAME" "r2:sinai-backups/database/" --progress
+          
+          echo "Database backup uploaded: $BACKUP_NAME"
+          
+          # Keep only last 12 backups in R2
+          rclone lsf "r2:sinai-backups/database/" | sort -r | tail -n +13 | while read file; do
+            rclone delete "r2:sinai-backups/database/$file"
+          done
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Database backup failed!"
+          exit 1
