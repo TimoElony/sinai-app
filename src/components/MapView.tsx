@@ -430,7 +430,6 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                     <p style="margin-bottom: 4px; color: #666; font-size: 13px;">Area: ${climbingAreaName}</p>
                                     <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Crag: ${cragName}</p>
                                     <p style="margin-bottom: 8px; color: #888; font-size: 12px;">Lat: ${lat}, Lon: ${lon}</p>
-                                    <button id="navigate-to-area-button" style="width: 100%; margin-top: 4px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Area Routes</button>
                                     <button id="navigate-to-crag-button" style="width: 100%; margin-top: 4px; background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Crag Routes</button>
                                 </div>
                             `)
@@ -439,13 +438,6 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                             .addTo(mapInstanceRef.current!);
 
                         currentPopupRef.current = popup;
-
-                        // Add event listener to the area button
-                        popup?.getElement()?.querySelector('#navigate-to-area-button')?.addEventListener('click',() => {
-                            console.log('Navigate to area clicked', climbingAreaName);
-                            onAreaChange(climbingAreaName || 'none');
-                            onValueChange('routes');
-                        });
 
                         // Add event listener to the crag button
                         popup?.getElement()?.querySelector('#navigate-to-crag-button')?.addEventListener('click',() => {
