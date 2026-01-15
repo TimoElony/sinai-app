@@ -24,7 +24,7 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
   const [selectedCrag, setSelectedCrag] = useState<string | undefined>(undefined);
   const [areaDetails, setAreaDetails] = useState<AreaDetails | undefined>(undefined);
   const [topoPoints, setTopopoints] = useState<TopoPoints[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("routes");
+  const [activeTab, setActiveTab] = useState<string>("map");
   const [routes, setRoutes] = useState<ClimbingRoute[]>([]);
   const [topos, setTopos] = useState<WallTopo[]>([]);
   const [highlightedTopoId, setHighlightedTopoId] = useState<string | undefined>(undefined);
