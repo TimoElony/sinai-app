@@ -1,0 +1,136 @@
+name: Restore Database from R2 Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_filename:
+        description: 'Backup filename to restore (see logs for available files)'
+        required: true
+        type: string
+        default: 'sinai-db-backup-'
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: List available backups
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rclone
+          
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${{ secrets.R2_ACCESS_KEY_ID }}
+          secret_access_key = ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          endpoint = https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          EOF
+          
+          echo "📋 Available backups (latest 10):"
+          echo "================================"
+          rclone lsf r2:sinai-backups/database/ --format "p;t" | sort -r | head -10 | awk -F';' '{print $1}'
+          echo "================================"
+          echo ""
+          echo "Copy the filename from above and paste it in the backup_filename input"
+      
+      - name: Validate backup file
+        if: ${{ !contains(github.event.inputs.backup_filename, '.sql.gz') }}
+        run: |
+          echo "❌ Error: backup_filename must end with .sql.gz"
+          echo "Example: sinai-db-backup-2026-01-15_12-42-03.sql.gz"
+          exit 1
+      
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client rclone
+      
+      - name: Configure rclone for R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = $R2_ACCESS_KEY_ID
+          secret_access_key = $R2_SECRET_ACCESS_KEY
+          endpoint = https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com
+          EOF
+      
+      - name: Download backup from R2
+        env:
+          BACKUP_FILE: ${{ github.event.inputs.backup_filename }}
+        run: |
+          echo "⬇️ Downloading backup: $BACKUP_FILE"
+          rclone copy "r2:sinai-backups/database/$BACKUP_FILE" . --progress
+          
+          if [ ! -f "$BACKUP_FILE" ]; then
+            echo "❌ Error: Backup file not found in R2"
+            exit 1
+          fi
+          echo "✅ Backup downloaded successfully"
+      
+      - name: Decompress backup
+        env:
+          BACKUP_FILE: ${{ github.event.inputs.backup_filename }}
+        run: |
+          echo "📦 Decompressing backup..."
+          gunzip "$BACKUP_FILE"
+          SQL_FILE="${BACKUP_FILE%.gz}"
+          echo "SQL_FILE=$SQL_FILE" >> $GITHUB_ENV
+          echo "✅ Backup decompressed: $SQL_FILE"
+      
+      - name: Restore to database
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        run: |
+          echo "🔄 Restoring database from: $SQL_FILE"
+          echo "This may take a few minutes..."
+          
+          PGPASSWORD=$DB_PASSWORD psql \
+            -h $DB_HOST \
+            -U $DB_USER \
+            -d $DB_NAME \
+            < $SQL_FILE
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Database restored successfully!"
+            echo ""
+            echo "📊 Restore completed at $(date)"
+          else
+            echo "❌ Database restore failed"
+            exit 1
+          fi
+      
+      - name: Verify restore
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        run: |
+          echo "🔍 Verifying database..."
+          PGPASSWORD=$DB_PASSWORD psql \
+            -h $DB_HOST \
+            -U $DB_USER \
+            -d $DB_NAME \
+            -c "SELECT COUNT(*) as climbing_routes FROM public.climbing_routes;" \
+            -c "SELECT COUNT(*) as wall_topos FROM public.wall_topos;" \
+            -c "SELECT COUNT(*) as climbing_areas FROM public.climbing_areas;"
+      
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f $SQL_FILE
+          echo "Cleanup completed"
+
