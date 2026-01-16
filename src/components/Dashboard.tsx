@@ -105,10 +105,9 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
 
         setAreaDetails({...areaData, ...responseData});
         if (!skipCragSelection) {
-          if (responseData.crags.length <= 1 ) {
+          // Only auto-select crag if it's the only one in the area
+          if (responseData.crags.length === 1) {
             setSelectedCrag(area);
-          } else {
-            setSelectedCrag(responseData.crags[0].name); 
           }
         }
 
