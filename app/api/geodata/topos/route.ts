@@ -5,7 +5,7 @@ import pool from '@/lib/db';
 export async function GET() {
     try {
         const response = await pool.query(`
-            SELECT id, description, longitude, latitude, climbing_area_name, climbing_sector 
+            SELECT id, description, longitude, latitude, climbing_area_name, climbing_sector, exposition, width 
             FROM wall_topos 
             WHERE longitude IS NOT NULL AND latitude IS NOT NULL
             ORDER BY updated_at DESC

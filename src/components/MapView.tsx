@@ -6,6 +6,134 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { ClimbingArea, TopoPoints, CragStats, ClimbingRoute } from '@/src/types/types';
 import * as turf from '@turf/turf';
 
+// Helper function to get bearing from exposition direction
+function getExpositionBearing(exposition: string): number {
+    const directions: Record<string, number> = {
+        'N': 0, 'NNE': 22.5, 'NE': 45, 'ENE': 67.5,
+        'E': 90, 'ESE': 112.5, 'SE': 135, 'SSE': 157.5,
+        'S': 180, 'SSW': 202.5, 'SW': 225, 'WSW': 247.5,
+        'W': 270, 'WNW': 292.5, 'NW': 315, 'NNW': 337.5
+    };
+    return directions[exposition.toUpperCase()] ?? 0;
+}
+
+// Helper function to create exposition line with dotted line indicator
+function createExpositionLine(point: TopoPoints, map: mapboxgl.Map): string[] {
+    if (!point.exposition) return [];
+    
+    const bearing = getExpositionBearing(point.exposition);
+    const perpBearing = (bearing + 90) % 360; // Perpendicular to exposition
+    const origin = turf.point([point.longitude, point.latitude]);
+
+    // Determine length from width (meters); fall back to 32m total length
+    const defaultLengthMeters = 32;
+    const totalLengthMeters = typeof point.width === 'number' && !isNaN(point.width) && point.width > 0
+        ? point.width
+        : defaultLengthMeters;
+    const halfLengthKm = (totalLengthMeters / 2) / 1000; // turf uses kilometers by default
+
+    // Create line perpendicular to exposition, centered at the origin
+    const lineStart = turf.destination(origin, halfLengthKm, perpBearing);
+    const lineEnd = turf.destination(origin, halfLengthKm, (perpBearing + 180) % 360); // Opposite direction
+
+    // Offset dotted line on exposition side (proportional to length, clamped)
+    const offsetMeters = Math.min(Math.max(totalLengthMeters / 8, 0.5), 5); // 0.5m to 5m
+    const dotOffsetKm = 0.001;
+    const dotStart = turf.destination(lineStart, dotOffsetKm, bearing);
+    const dotEnd = turf.destination(lineEnd, dotOffsetKm, bearing);
+    
+    // Add source if not exists
+    const sourceId = `exposition-${point.id}`;
+    const solidLayerId = `exposition-line-${point.id}`;
+    const dottedLayerId = `exposition-dotted-${point.id}`;
+    
+    if (!map.getSource(sourceId)) {
+        map.addSource(sourceId, {
+            type: 'geojson',
+            data: {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [
+                                lineStart.geometry.coordinates,
+                                lineEnd.geometry.coordinates
+                            ]
+                        },
+                        properties: {
+                            type: 'solid',
+                            name: point.description,
+                            climbing_area_name: point.climbing_area_name,
+                            climbing_sector: point.climbing_sector,
+                            longitude: point.longitude,
+                            latitude: point.latitude,
+                            id: point.id
+                        }
+                    },
+                    {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [
+                                dotStart.geometry.coordinates,
+                                dotEnd.geometry.coordinates
+                            ]
+                        },
+                        properties: {
+                            type: 'dotted',
+                            name: point.description,
+                            climbing_area_name: point.climbing_area_name,
+                            climbing_sector: point.climbing_sector,
+                            longitude: point.longitude,
+                            latitude: point.latitude,
+                            id: point.id
+                        }
+                    }
+                ]
+            }
+        });
+        
+        // Add solid line layer
+        map.addLayer({
+            id: solidLayerId,
+            type: 'line',
+            source: sourceId,
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': '#fbbf24',
+                'line-width': 5,
+                'line-opacity': 0.9
+            },
+            filter: ['==', ['get', 'type'], 'solid']
+        });
+        
+        // Add dotted line layer on exposition side
+        map.addLayer({
+            id: dottedLayerId,
+            type: 'line',
+            source: sourceId,
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': '#fbbf24',
+                'line-width': 5,
+                'line-opacity': 0.9,
+                'line-dasharray': [0.1, 2]
+            },
+            filter: ['==', ['get', 'type'], 'dotted']
+        });
+    }
+    
+    return [solidLayerId, dottedLayerId];
+}
+
 export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCragChange, areas, highlightedTopoId, selectedArea, sessionToken }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void; onCragChange?: (selectedValue: string, areaName?: string) => void; areas: ClimbingArea[]; highlightedTopoId?: string; selectedArea?: string; sessionToken?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
@@ -38,11 +166,13 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
 
     // Generate SVG bar chart as data URI
     const generateBarChart = (stats: CragStats) => {
-        const barWidth = 26;  // Increased from 22 (20% bigger)
-        const barSpacing = 5;  // Increased from 4
-        const chartHeight = 72; // Increased from 60 (20% bigger)
-        const labelHeight = 36; // Increased from 30 (20% bigger)
-        const totalHeight = chartHeight + labelHeight;
+        const barWidth = 52;  // Doubled for higher resolution
+        const barSpacing = 10;  // Doubled for higher resolution
+        const chartHeight = 144; // Doubled for higher resolution
+        const labelHeight = 72; // Doubled for higher resolution
+        const buttonHeight = 48; // Doubled for higher resolution
+        const buttonMargin = 8; // Doubled for higher resolution
+        const totalHeight = chartHeight + labelHeight + buttonMargin + buttonHeight;
         const maxCount = Math.max(stats.easy, stats.medium, stats.hard, 1);
         
         const easyHeight = (stats.easy / maxCount) * chartHeight;
@@ -50,23 +180,28 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
         const hardHeight = (stats.hard / maxCount) * chartHeight;
         
         const totalWidth = barWidth * 3 + barSpacing * 2;
+        const buttonY = chartHeight + labelHeight + buttonMargin;
         
         const svg = `
             <svg width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg">
                 <!-- Bars -->
-                <rect x="0" y="${chartHeight - easyHeight}" width="${barWidth}" height="${easyHeight}" fill="#22c55e" stroke="#fff" stroke-width="2"/>
-                <rect x="${barWidth + barSpacing}" y="${chartHeight - mediumHeight}" width="${barWidth}" height="${mediumHeight}" fill="#eab308" stroke="#fff" stroke-width="2"/>
-                <rect x="${(barWidth + barSpacing) * 2}" y="${chartHeight - hardHeight}" width="${barWidth}" height="${hardHeight}" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+                <rect x="0" y="${chartHeight - easyHeight}" width="${barWidth}" height="${easyHeight}" fill="#22c55e" stroke="#fff" stroke-width="4"/>
+                <rect x="${barWidth + barSpacing}" y="${chartHeight - mediumHeight}" width="${barWidth}" height="${mediumHeight}" fill="#eab308" stroke="#fff" stroke-width="4"/>
+                <rect x="${(barWidth + barSpacing) * 2}" y="${chartHeight - hardHeight}" width="${barWidth}" height="${hardHeight}" fill="#ef4444" stroke="#fff" stroke-width="4"/>
                 
                 <!-- Count labels on bars with white stroke -->
-                <text x="${barWidth / 2}" y="${chartHeight - easyHeight / 2 + 5}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">${stats.easy}</text>
-                <text x="${barWidth + barSpacing + barWidth / 2}" y="${chartHeight - mediumHeight / 2 + 5}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">${stats.medium}</text>
-                <text x="${(barWidth + barSpacing) * 2 + barWidth / 2}" y="${chartHeight - hardHeight / 2 + 5}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">${stats.hard}</text>
+                <text x="${barWidth / 2}" y="${chartHeight - easyHeight / 2 + 10}" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#000" stroke="#fff" stroke-width="6" paint-order="stroke" text-anchor="middle">${stats.easy}</text>
+                <text x="${barWidth + barSpacing + barWidth / 2}" y="${chartHeight - mediumHeight / 2 + 10}" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#000" stroke="#fff" stroke-width="6" paint-order="stroke" text-anchor="middle">${stats.medium}</text>
+                <text x="${(barWidth + barSpacing) * 2 + barWidth / 2}" y="${chartHeight - hardHeight / 2 + 10}" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#000" stroke="#fff" stroke-width="6" paint-order="stroke" text-anchor="middle">${stats.hard}</text>
                 
                 <!-- Grade labels with white stroke -->
-                <text x="${barWidth / 2}" y="${chartHeight + 22}" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">≤5c+</text>
-                <text x="${barWidth + barSpacing + barWidth / 2}" y="${chartHeight + 22}" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">6a-6c+</text>
-                <text x="${(barWidth + barSpacing) * 2 + barWidth / 2}" y="${chartHeight + 22}" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#000" stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">≥7a</text>
+                <text x="${barWidth / 2}" y="${chartHeight + 44}" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#000" stroke="#fff" stroke-width="6" paint-order="stroke" text-anchor="middle">≤5c+</text>
+                <text x="${barWidth + barSpacing + barWidth / 2}" y="${chartHeight + 44}" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#000" stroke="#fff" stroke-width="6" paint-order="stroke" text-anchor="middle">6a-6c+</text>
+                <text x="${(barWidth + barSpacing) * 2 + barWidth / 2}" y="${chartHeight + 44}" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#000" stroke="#fff" stroke-width="6" paint-order="stroke" text-anchor="middle">≥7a</text>
+                
+                <!-- Button -->
+                <rect x="0" y="${buttonY}" width="${totalWidth}" height="${buttonHeight}" fill="#3b82f6" rx="8" ry="8"/>
+                <text x="${totalWidth / 2}" y="${buttonY + buttonHeight / 2 + 8}" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">Details &amp; Topos</text>
             </svg>
         `;
         
@@ -129,6 +264,106 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                     },
                 });
                 
+                // Render exposition indicators and collect layer IDs
+                const expositionLayerIds: string[] = [];
+                topoPoints.forEach(point => {
+                    if (point.exposition && mapInstanceRef.current) {
+                        const layerIds = createExpositionLine(point, mapInstanceRef.current);
+                        expositionLayerIds.push(...layerIds);
+                    }
+                });
+                
+                // Add click handlers for exposition lines
+                expositionLayerIds.forEach(layerId => {
+                    mapInstanceRef.current?.on('click', layerId, (e) => {
+                        // Close any existing popup
+                        if (currentPopupRef.current) {
+                            currentPopupRef.current.remove();
+                        }
+
+                        const properties = e.features?.[0].properties;
+                        const description = properties?.name;
+                        const climbingAreaName = properties?.climbing_area_name;
+                        const cragName = properties?.climbing_sector || 'Unknown';
+                        const coordinates = [Number(properties?.longitude), Number(properties?.latitude)] as [number, number];
+                        const topoId = properties?.id;
+
+                        if (coordinates) {
+                            const lat = coordinates[1].toFixed(6);
+                            const lon = coordinates[0].toFixed(6);
+
+                            const editButton = sessionToken ? `<button id="edit-location-button" style="width: 100%; margin-top: 4px; background-color: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">Edit Location</button>` : '';
+
+                            const popup = new mapboxgl.Popup()
+                                .setLngLat(coordinates)
+                                .setHTML(`
+                                    <div style="font-family: sans-serif;">
+                                        <p style="margin-bottom: 8px;"><strong>Topo: ${description}</strong></p>
+                                        <p style="margin-bottom: 4px; color: #666; font-size: 13px;">Area: ${climbingAreaName}</p>
+                                        <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Crag: ${cragName}</p>
+                                        <p style="margin-bottom: 8px; color: #888; font-size: 12px;">Lat: ${lat}, Lon: ${lon}</p>
+                                        <button id="navigate-to-crag-button" style="width: 100%; margin-top: 4px; background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Crag Routes</button>
+                                        ${editButton}
+                                    </div>
+                                `)
+                                .setMaxWidth('300px')
+                                .setOffset(10)
+                                .addTo(mapInstanceRef.current!);
+
+                            currentPopupRef.current = popup;
+
+                            // Add event listener to the crag button
+                            Promise.resolve().then(() => {
+                                const navBtn = popup?.getElement()?.querySelector('#navigate-to-crag-button');
+                                if (navBtn) {
+                                    navBtn.addEventListener('click', () => {
+                                        console.log('Navigate to crag clicked', climbingAreaName, cragName);
+                                        onAreaChange(climbingAreaName || 'none');
+                                        if (onCragChange) {
+                                            onCragChange(cragName, climbingAreaName);
+                                        }
+                                        onValueChange('routes');
+                                    });
+                                }
+                            });
+
+                            // Add event listener to edit location button
+                            const topoPoint = topoPoints.find(tp => tp.id === topoId);
+                            if (topoPoint) {
+                                Promise.resolve().then(() => {
+                                    const editBtn = popup?.getElement()?.querySelector('#edit-location-button');
+                                    if (editBtn) {
+                                        editBtn.addEventListener('click', () => {
+                                            console.log('Edit location clicked for topo:', topoPoint.id);
+                                            setEditingTopoId(topoPoint.id);
+                                            if (currentPopupRef.current) {
+                                                currentPopupRef.current.remove();
+                                                currentPopupRef.current = null;
+                                            }
+                                            // Change cursor to indicate click mode
+                                            if (mapInstanceRef.current) {
+                                                mapInstanceRef.current.getCanvas().style.cursor = 'crosshair';
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                    // Change cursor on hover
+                    mapInstanceRef.current?.on('mouseenter', layerId, () => {
+                        if (mapInstanceRef.current) {
+                            mapInstanceRef.current.getCanvas().style.cursor = 'pointer';
+                        }
+                    });
+                    mapInstanceRef.current?.on('mouseleave', layerId, () => {
+                        if (mapInstanceRef.current) {
+                            mapInstanceRef.current.getCanvas().style.cursor = '';
+                        }
+                    });
+                });
+                
                 areas.map((area)=>{
                     const areaPoints = topoPoints.filter((point)=>
                         point.climbing_area_name === area.name && 
@@ -138,7 +373,10 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         !isNaN(Number(point.latitude))
                     );
                     const areaCollection = turf.featureCollection(areaPoints.map((point)=>
-                        turf.point([Number(point.longitude), Number(point.latitude)], { name: point.description })
+                        turf.point([Number(point.longitude), Number(point.latitude)], { 
+                            name: point.description,
+                            exposition: point.exposition || ''
+                        })
                     ));
                     if (areaCollection.features.length < 3) {
                         const x = areaCollection.features[0]?.geometry.coordinates[0];
@@ -348,6 +586,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         'circle-stroke-width': 2,
                         'circle-stroke-color': '#ffffff',
                     },
+                    filter: ['==', ['get', 'exposition'], ''],
                     minzoom: 11,
                 });
 
@@ -588,7 +827,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                     source: sourceId,
                                     layout: {
                                         'icon-image': chartImageId,
-                                        'icon-size': 1,
+                                        'icon-size': 0.5,
                                         'icon-anchor': 'center',
                                         'icon-offset': [0, 0],
                                         'icon-allow-overlap': true,
@@ -816,6 +1055,9 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                 console.log('In edit mode, clicked at:', e.lngLat);
                 const clickedCoordinates = e.lngLat;
                 const locationData = { lng: clickedCoordinates.lng, lat: clickedCoordinates.lat };
+                const existingTopo = topoPoints.find(tp => tp.id === editingTopoId);
+                const existingExposition = existingTopo?.exposition || '';
+                const existingWidth = existingTopo?.width ?? '';
                 
                 // Show confirmation popup
                 const confirmPopup = new mapboxgl.Popup()
@@ -824,6 +1066,10 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         <div style="font-family: sans-serif;">
                             <p style="margin-bottom: 8px;">New location selected</p>
                             <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Lat: ${clickedCoordinates.lat.toFixed(6)}, Lon: ${clickedCoordinates.lng.toFixed(6)}</p>
+                            <label for="exposition-input" style="display: block; margin-bottom: 4px; font-size: 12px; color: #555;">Exposition (e.g., NE, SSW)</label>
+                            <input id="exposition-input" type="text" placeholder="Exposition" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; margin-bottom: 8px;" />
+                            <label for="width-input" style="display: block; margin-bottom: 4px; font-size: 12px; color: #555;">Width (meters)</label>
+                            <input id="width-input" type="number" step="0.1" placeholder="Width" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #d1d5db; margin-bottom: 8px;" />
                             <button id="confirm-location-button" style="width: 100%; margin-top: 4px; background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">Confirm & Update</button>
                             <button id="cancel-location-button" style="width: 100%; margin-top: 4px; background-color: #6b7280; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">Cancel</button>
                         </div>
@@ -834,11 +1080,23 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
 
                 // Use Promise.resolve to ensure DOM is ready before attaching listeners
                 Promise.resolve().then(() => {
+                    const expoInput = confirmPopup.getElement()?.querySelector<HTMLInputElement>('#exposition-input');
+                    if (expoInput) {
+                        expoInput.value = existingExposition;
+                    }
+                    const widthInput = confirmPopup.getElement()?.querySelector<HTMLInputElement>('#width-input');
+                    if (widthInput && existingWidth !== '') {
+                        widthInput.value = String(existingWidth);
+                    }
                     const confirmBtn = confirmPopup.getElement()?.querySelector('#confirm-location-button');
                     if (confirmBtn) {
                         const clickHandler = async () => {
                             if (locationData && sessionToken) {
                                 try {
+                                    const updatedExposition = expoInput?.value?.trim() || null;
+                                    const updatedWidthRaw = widthInput?.value?.trim();
+                                    const updatedWidth = updatedWidthRaw === '' || updatedWidthRaw === undefined ? null : Number(updatedWidthRaw);
+                                    
                                     const url = `/api/walltopos/location/${editingTopoId}`;
                                     const response = await fetch(url, {
                                         method: 'PATCH',
@@ -849,6 +1107,8 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                         body: JSON.stringify({
                                             longitude: locationData.lng,
                                             latitude: locationData.lat,
+                                            exposition: updatedExposition,
+                                            width: isNaN(updatedWidth as number) ? null : updatedWidth,
                                         }),
                                     });
 
@@ -917,7 +1177,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
         return () => {
             map.off('click', handleMapClick);
         };
-    }, [editingTopoId, newTopoLocation, sessionToken]);
+    }, [editingTopoId, newTopoLocation, sessionToken, topoPoints]);
 
     return(
         <>

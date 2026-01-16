@@ -5,6 +5,8 @@ export type TopoPoints = {
   latitude: number;
   climbing_area_name: string;
   climbing_sector: string;
+  exposition?: string;
+  width?: number;
 }
 
 export type CragStats = {
