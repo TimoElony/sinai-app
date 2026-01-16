@@ -631,7 +631,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                             const res = await fetch(`/api/climbingroutes/${encodeURIComponent(areaName)}/${encodeURIComponent(cragName)}`);
                                             const data: ClimbingRoute[] = await res.json();
                                             const grades = Array.isArray(data)
-                                                ? data.map(r => r.grade_best_guess || '—').filter(Boolean)
+                                                ? data.map(r => r.grade_best_guess || '—').filter(Boolean).sort()
                                                 : [];
                                             const gradeLine = grades.length > 0 ? grades.join(', ') : 'No grades available';
                                             popup.setHTML(`
