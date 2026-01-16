@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { ClimbingArea, TopoPoints, CragStats } from '@/src/types/types';
+import { ClimbingArea, TopoPoints, CragStats, ClimbingRoute } from '@/src/types/types';
 import * as turf from '@turf/turf';
 
 export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCragChange, areas, highlightedTopoId, selectedArea }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void; onCragChange?: (selectedValue: string, areaName?: string) => void; areas: ClimbingArea[]; highlightedTopoId?: string; selectedArea?: string }) {
@@ -208,7 +208,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                     // Group topos by crag
                     const cragGroups = new Map<string, TopoPoints[]>();
                     areaPoints.forEach(point => {
-                        const cragName = point.climbing_sector || 'Unknown Crag';
+                        const cragName = (point.climbing_sector || 'Unknown Crag').trim();
                         if (!cragGroups.has(cragName)) {
                             cragGroups.set(cragName, []);
                         }
@@ -216,7 +216,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                     });
 
                     // Create convex hulls and labels for each crag
-                    cragGroups.forEach((cragTopos, cragName) => {
+                    Array.from(cragGroups.entries()).forEach(([cragName, cragTopos], idx) => {
                         const cragCollection = turf.featureCollection(cragTopos.map((point)=>
                             turf.point([Number(point.longitude), Number(point.latitude)], { name: point.description })
                         ));
@@ -281,10 +281,11 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                 const currentScore = Number(point.longitude) + Number(point.latitude);
                                 return currentScore > maxScore ? point : max;
                             });
-                            
-                            // Create a point offset northeast from the northeasternmost topo
-                            const chartLng = Number(northeastPoint.longitude) + 0.002; // ~200m east
-                            const chartLat = Number(northeastPoint.latitude) + 0.002; // ~200m north
+
+                            // Alternate placement to reduce overlap: even -> NE, odd -> NW
+                            const lngOffset = idx % 2 === 0 ? 0.002 : -0.002;
+                            const chartLng = Number(northeastPoint.longitude) + lngOffset; // east or west ~200m
+                            const chartLat = Number(northeastPoint.latitude) + 0.002; // north ~200m
                             const chartPoint = turf.point([chartLng, chartLat], {
                                 cragName: cragName,
                                 areaName: area.name,
@@ -522,8 +523,9 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                     return;
                 }
 
-                Object.keys(areaStats).forEach(cragName => {
-                    const stats = areaStats[cragName];
+                Object.keys(areaStats).forEach(cragNameRaw => {
+                    const cragName = cragNameRaw.trim();
+                    const stats = areaStats[cragNameRaw] || areaStats[cragName];
                     if (!stats || (stats.easy === 0 && stats.medium === 0 && stats.hard === 0)) {
                         return;
                     }
@@ -531,33 +533,17 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                     const chartImageId = `chart-${area.name}-${cragName}`;
                     const cragLabelId = `crag-label-${area.name}-${cragName}`;
                     const chartLayerId = `${cragLabelId}-chart`;
-                    let sourceId = `${cragLabelId}-chart-source`;
+                    const sourceId = `${cragLabelId}-chart-source`;
 
                     // Skip if already added
                     if (map.hasImage(chartImageId) || map.getLayer(chartLayerId)) {
                         return;
                     }
 
-                    // Check if the chart source exists
-                    let source = map.getSource(sourceId);
-                    
-                    // If not found, try to find any chart source in this area
+                    // Require matching chart source; skip if missing to avoid misplacement
+                    const source = map.getSource(sourceId);
                     if (!source) {
-                        const style = map.getStyle();
-                        const sources = style.sources || {};
-                        const areaLabel = `crag-label-${area.name}`;
-                        const matchingSourceId = Object.keys(sources).find(key => 
-                            key.startsWith(areaLabel) && key.endsWith('-chart-source')
-                        );
-                        if (matchingSourceId) {
-                            sourceId = matchingSourceId;
-                            source = map.getSource(matchingSourceId);
-                            console.log(`Found fallback source: ${matchingSourceId} for chart ${cragName}`);
-                        }
-                    }
-
-                    // Only add chart if we have a source
-                    if (!source) {
+                        console.warn(`No chart source for ${cragName} in ${area.name}, skipping chart`);
                         return;
                     }
 
@@ -586,42 +572,78 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                 console.log(`✓ Chart added for ${cragName}`);
                                 
                                 // Add click handler for popup
-                                map.on('click', chartLayerId, (e) => {
+                                map.on('click', chartLayerId, async (e) => {
                                     if (currentPopupRef.current) {
                                         currentPopupRef.current.remove();
                                     }
                                     
                                     const coordinates = e.lngLat;
                                     const properties = e.features?.[0]?.properties;
-                                    const cragName = properties?.cragName || properties?.climbing_sector;
-                                    const areaName = properties?.areaName || properties?.climbing_area_name;
+                                    const cragName = properties?.cragName || properties?.climbing_sector || 'Unknown crag';
+                                    const areaName = properties?.areaName || properties?.climbing_area_name || 'Unknown area';
                                     
                                     const popup = new mapboxgl.Popup()
                                         .setLngLat(coordinates)
                                         .setHTML(`
                                             <div style="font-family: sans-serif;">
                                                 <p style="margin-bottom: 8px;"><strong>${cragName}</strong></p>
-                                                <p style="margin-bottom: 8px; color: #666;">${areaName}</p>
+                                                <p style="margin-bottom: 6px; color: #666;">${areaName}</p>
+                                                <p id="grades-line" style="margin-bottom: 8px; color: #666; font-size: 13px;">Loading grades...</p>
                                                 <button id="navigate-button-crag" style="width: 100%; margin-top: 8px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Routes</button>
                                             </div>
                                         `)
-                                        .setMaxWidth('300px')
+                                        .setMaxWidth('320px')
                                         .setOffset(10)
                                         .addTo(map);
                                     
                                     currentPopupRef.current = popup;
                                     
-                                    // Add navigation button handler
-                                    setTimeout(() => {
-                                        const button = document.getElementById('navigate-button-crag');
-                                        if (button && onCragChange) {
-                                            button.addEventListener('click', () => {
-                                                onValueChange('routes');
-                                                onCragChange(cragName, areaName);
-                                                popup.remove();
-                                            });
+                                    // Fetch grades and update popup
+                                    const loadGrades = async () => {
+                                        try {
+                                            const res = await fetch(`/api/climbingroutes/${encodeURIComponent(areaName)}/${encodeURIComponent(cragName)}`);
+                                            const data: ClimbingRoute[] = await res.json();
+                                            const grades = Array.isArray(data)
+                                                ? data.map(r => r.grade_best_guess || '—').filter(Boolean)
+                                                : [];
+                                            const gradeLine = grades.length > 0 ? grades.join(', ') : 'No grades available';
+                                            popup.setHTML(`
+                                                <div style="font-family: sans-serif;">
+                                                    <p style="margin-bottom: 8px;"><strong>${cragName}</strong></p>
+                                                    <p style="margin-bottom: 6px; color: #666;">${areaName}</p>
+                                                    <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Grades: ${gradeLine}</p>
+                                                    <button id="navigate-button-crag" style="width: 100%; margin-top: 8px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Routes</button>
+                                                </div>
+                                            `);
+                                            const button = document.getElementById('navigate-button-crag');
+                                            if (button && onCragChange) {
+                                                button.addEventListener('click', () => {
+                                                    onValueChange('routes');
+                                                    onCragChange(cragName, areaName);
+                                                    popup.remove();
+                                                });
+                                            }
+                                        } catch (err) {
+                                            popup.setHTML(`
+                                                <div style="font-family: sans-serif;">
+                                                    <p style="margin-bottom: 8px;"><strong>${cragName}</strong></p>
+                                                    <p style="margin-bottom: 6px; color: #666;">${areaName}</p>
+                                                    <p style="margin-bottom: 8px; color: #c00; font-size: 13px;">Failed to load grades.</p>
+                                                    <button id="navigate-button-crag" style="width: 100%; margin-top: 8px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Routes</button>
+                                                </div>
+                                            `);
+                                            const button = document.getElementById('navigate-button-crag');
+                                            if (button && onCragChange) {
+                                                button.addEventListener('click', () => {
+                                                    onValueChange('routes');
+                                                    onCragChange(cragName, areaName);
+                                                    popup.remove();
+                                                });
+                                            }
                                         }
-                                    }, 0);
+                                    };
+
+                                    loadGrades();
                                 });
                                 
                                 // Change cursor on hover
