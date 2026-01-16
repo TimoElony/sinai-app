@@ -44,8 +44,17 @@ export async function PATCH(
         );
 
         return NextResponse.json(result.rows[0]);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating topo location:', error);
+
+        // Gracefully handle connection errors so the client can retry
+        if (error?.message?.includes('Connection terminated')) {
+            return NextResponse.json(
+                { error: 'Database connection was interrupted. Please retry.' },
+                { status: 503 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Failed to update topo location' },
             { status: 500 }

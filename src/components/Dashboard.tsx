@@ -12,6 +12,7 @@ import {
   TabsTrigger,
 } from "@/src/components/ui/tabs"
 import { toast } from "sonner";
+import { Map as MapIcon } from "lucide-react";
 
 
 
@@ -231,7 +232,13 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
         <TabsList className="grid w-full grid-cols-3 min-h-15">
           <TabsTrigger value="areas" className="w-[100%]">Areas</TabsTrigger>
           <TabsTrigger value="routes" className="w-[100%]">Topos</TabsTrigger>
-          <TabsTrigger value="map" className="w-[100%]">Map</TabsTrigger>
+          <TabsTrigger
+            value="map"
+            className={`w-[100%] flex items-center justify-center gap-2 ${activeTab !== 'map' ? 'border border-green-500 bg-green-50 text-red-700 shadow-sm animate-pulse' : ''}`}
+          >
+            <MapIcon className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Map</span>
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="areas">
           <ClimbingAreas areaDetails={areaDetails} onAreaChange={handleAreaChange} areas={areas} selectedArea={selectedArea} routes={routes} />

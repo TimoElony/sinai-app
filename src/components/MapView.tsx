@@ -826,14 +826,11 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                 // Use Promise.resolve to ensure DOM is ready before attaching listeners
                 Promise.resolve().then(() => {
                     const confirmBtn = confirmPopup.getElement()?.querySelector('#confirm-location-button');
-                    console.log('Confirm button found:', !!confirmBtn);
                     if (confirmBtn) {
                         const clickHandler = async () => {
-                            console.log('Confirm clicked, locationData:', locationData, 'sessionToken:', !!sessionToken, 'editingTopoId:', editingTopoId);
                             if (locationData && sessionToken) {
                                 try {
                                     const url = `/api/walltopos/location/${editingTopoId}`;
-                                    console.log('Sending PATCH to:', url);
                                     const response = await fetch(url, {
                                         method: 'PATCH',
                                         headers: {
@@ -846,7 +843,6 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                         }),
                                     });
 
-                                    console.log('Response status:', response.status);
                                     if (response.ok) {
                                         console.log('Topo location updated successfully');
                                         confirmPopup.remove();
