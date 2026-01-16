@@ -37,9 +37,9 @@ export async function PUT(
             );
         }
 
-        // Get the current line segments
+        // Get the current line segments and topo description for logging
         const oldData = await pool.query(
-            "SELECT line_segments FROM wall_topos WHERE id = $1",
+            "SELECT line_segments, description FROM wall_topos WHERE id = $1",
             [topo_id]
         );
         
@@ -55,6 +55,13 @@ export async function PUT(
             await pool.query(
                 "UPDATE wall_topos SET line_segments = $1 WHERE id = $2",
                 [updatedSegments, topo_id]
+            );
+
+            // Log the deletion
+            const topoDescription = oldData.rows[0]?.description || topo_id;
+            await pool.query(
+                "INSERT INTO change_logs (user_id, action) VALUES ($1, $2)",
+                [authResult.user.email, `Deleted line segment #${line_label} from topo: ${topoDescription}`]
             );
 
             return NextResponse.json({ 
@@ -79,6 +86,13 @@ export async function PUT(
                 [updatedSegments, topo_id]
             );
 
+            // Log the update
+            const topoDescription = oldData.rows[0]?.description || topo_id;
+            await pool.query(
+                "INSERT INTO change_logs (user_id, action) VALUES ($1, $2)",
+                [authResult.user.email, `Updated line segment #${line_label} on topo: ${topoDescription}`]
+            );
+
             return NextResponse.json({ 
                 ok: true,
                 message: "Successfully updated line segments"
@@ -97,6 +111,13 @@ export async function PUT(
             await pool.query(
                 "UPDATE wall_topos SET line_segments = array_append(COALESCE(line_segments, '{}'::jsonb[]), $1::jsonb) WHERE id = $2",
                 [geoJSONLine, topo_id]
+            );
+            
+            // Log the addition
+            const topoDescription = oldData.rows[0]?.description || topo_id;
+            await pool.query(
+                "INSERT INTO change_logs (user_id, action) VALUES ($1, $2)",
+                [authResult.user.email, `Added new line segment #${line_label} to topo: ${topoDescription}`]
             );
             
             return NextResponse.json({ 
