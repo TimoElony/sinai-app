@@ -85,6 +85,19 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
             style: 'mapbox://styles/mapbox/satellite-v9',
         });
 
+        // Add geolocation control to show user's current location
+        if (mapInstanceRef.current) {
+            const geolocate = new mapboxgl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true,
+                },
+                trackUserLocation: true,
+                showUserHeading: true,
+                fitBoundsOptions: { maxZoom: 14 },
+            });
+            mapInstanceRef.current.addControl(geolocate, 'bottom-right');
+        }
+
         if (mapInstanceRef.current != null) {
             mapInstanceRef.current.on('load', () => {
                 if (mapInstanceRef.current == null) {
