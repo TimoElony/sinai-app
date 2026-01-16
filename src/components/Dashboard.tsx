@@ -141,6 +141,15 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
         const response = await fetch(`/api/climbingroutes/${areaName}${timestamp}`, fetchOptions);
         const routeData: ClimbingRoute[] = await response.json();
         setRoutes(routeData);
+        
+        // Update area's route_count if it has changed
+        const newCount = routeData.length;
+        const currentArea = areas.find(a => a.name === areaName);
+        if (currentArea && currentArea.route_count !== newCount) {
+            setAreas(areas.map(a => 
+                a.name === areaName ? { ...a, route_count: newCount } : a
+            ));
+        }
     } catch (error) {
       console.error(error);
       throw new Error("Error fetching routes for area");

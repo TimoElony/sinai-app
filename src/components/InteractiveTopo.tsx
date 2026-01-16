@@ -232,9 +232,16 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                                         });
         
                                         const path = line().curve(curveCardinal)(points);
-                                        const [labelcx, labelcy] = points[points.length-1];
+                                        let [labelcx, labelcy] = points[points.length-1];
                                         let label = segment.properties.line_label;
                                         if (!path) return;
+                                        
+                                        // Clamp circle position to stay within frame (with 10px margin)
+                                        const circleRadius = 8;
+                                        const margin = 10;
+                                        labelcx = Math.max(circleRadius + margin, Math.min(labelcx, dimensions[0] - circleRadius - margin));
+                                        labelcy = Math.max(circleRadius + margin, Math.min(labelcy + 20, dimensions[1] - circleRadius - margin));
+                                        
                                         return(
                                             <React.Fragment key={`route-${label}`}>
                                                 
@@ -248,9 +255,9 @@ export default function InteractiveTopo({ changeRoutesNotLines, topoRef, index, 
                                                     style={{ cursor: "pointer" }}
                                                 />
                                                 <path key={"path"+ label + topoId} d={path} stroke={segment.properties.deleting?"gray":"yellow"} strokeWidth={segment.properties.deleting?1:1} fill="none" pointerEvents="none"/>
-                                                <circle key={"circle" + label} cx={labelcx} cy={labelcy+20} r={8} fill="white" />
+                                                <circle key={"circle" + label} cx={labelcx} cy={labelcy} r={8} fill="white" />
                                                 <circle key={"circleend" + label} cx={points[0][0]} cy={points[0][1]} r={5} stroke={segment.properties.deleting?"gray":"yellow"} strokeWidth={1} fill={segment.properties.deleting?"gray":"yellow"}/>
-                                                <text key={"text"+label} x={labelcx} y={labelcy+22} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
+                                                <text key={"text"+label} x={labelcx} y={labelcy+2} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="black">
                                                     {label}
                                                 </text>
                                                 {modifiedPoints &&
