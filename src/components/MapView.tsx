@@ -1,15 +1,18 @@
 import { useRef, useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
+import { toast } from 'sonner'
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ClimbingArea, TopoPoints, CragStats, ClimbingRoute } from '@/src/types/types';
 import * as turf from '@turf/turf';
 
-export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCragChange, areas, highlightedTopoId, selectedArea }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void; onCragChange?: (selectedValue: string, areaName?: string) => void; areas: ClimbingArea[]; highlightedTopoId?: string; selectedArea?: string }) {
+export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCragChange, areas, highlightedTopoId, selectedArea, sessionToken }: { topoPoints: TopoPoints[]; onValueChange: (value: string) => void; onAreaChange: (selectedValue: string) => void; onCragChange?: (selectedValue: string, areaName?: string) => void; areas: ClimbingArea[]; highlightedTopoId?: string; selectedArea?: string; sessionToken?: string }) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const currentPopupRef = useRef<mapboxgl.Popup | null>(null);
     const [cragStats, setCragStats] = useState<Record<string, Record<string, CragStats>>>({});
+    const [editingTopoId, setEditingTopoId] = useState<string | undefined>(undefined);
+    const [newTopoLocation, setNewTopoLocation] = useState<{lng: number; lat: number} | undefined>(undefined);
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     
     if (!mapboxToken) {
@@ -436,6 +439,8 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         const lon = coordinates[0].toFixed(6);
                         const cragName = topoPoint?.climbing_sector || 'Unknown';
 
+                        const editButton = sessionToken ? `<button id="edit-location-button" style="width: 100%; margin-top: 4px; background-color: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">Edit Location</button>` : '';
+
                         const popup = new mapboxgl.Popup()
                             .setLngLat(coordinates)
                             .setHTML(`
@@ -445,6 +450,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                     <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Crag: ${cragName}</p>
                                     <p style="margin-bottom: 8px; color: #888; font-size: 12px;">Lat: ${lat}, Lon: ${lon}</p>
                                     <button id="navigate-to-crag-button" style="width: 100%; margin-top: 4px; background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Crag Routes</button>
+                                    ${editButton}
                                 </div>
                             `)
                             .setMaxWidth('300px')
@@ -454,34 +460,42 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                         currentPopupRef.current = popup;
 
                         // Add event listener to the crag button
-                        popup?.getElement()?.querySelector('#navigate-to-crag-button')?.addEventListener('click',() => {
-                            console.log('Navigate to crag clicked', climbingAreaName, cragName);
-                            onAreaChange(climbingAreaName || 'none');
-                            if (onCragChange) {
-                                // Pass both area name and crag name to ensure area is set
-                                onCragChange(cragName, climbingAreaName);
+                        Promise.resolve().then(() => {
+                            const navBtn = popup?.getElement()?.querySelector('#navigate-to-crag-button');
+                            if (navBtn) {
+                                navBtn.addEventListener('click', () => {
+                                    console.log('Navigate to crag clicked', climbingAreaName, cragName);
+                                    onAreaChange(climbingAreaName || 'none');
+                                    if (onCragChange) {
+                                        onCragChange(cragName, climbingAreaName);
+                                    }
+                                    onValueChange('routes');
+                                });
                             }
-                            onValueChange('routes');
                         });
-                    }
-                });
-                });
 
-                // Add click handler on map to close popup when clicking on empty space
-                // This is registered once, outside the areas loop
-                mapInstanceRef.current.on('click', (e) => {
-                    // Check if the click was on any feature layer
-                    const features = mapInstanceRef.current?.queryRenderedFeatures(e.point);
-                    const isFeatureClick = features?.some(f => 
-                        (f.source && typeof f.source === 'string' && 
-                         (f.source.startsWith('area-polygon') || f.source.startsWith('area-collection')))
-                    );
-                    
-                    // If clicking on empty space (no feature), close the popup
-                    if (!isFeatureClick && currentPopupRef.current) {
-                        currentPopupRef.current.remove();
-                        currentPopupRef.current = null;
+                        // Add event listener to edit location button
+                        if (topoPoint) {
+                            Promise.resolve().then(() => {
+                                const editBtn = popup?.getElement()?.querySelector('#edit-location-button');
+                                if (editBtn) {
+                                    editBtn.addEventListener('click', () => {
+                                        console.log('Edit location clicked for topo:', topoPoint.id);
+                                        setEditingTopoId(topoPoint.id);
+                                        if (currentPopupRef.current) {
+                                            currentPopupRef.current.remove();
+                                            currentPopupRef.current = null;
+                                        }
+                                        // Change cursor to indicate click mode
+                                        if (mapInstanceRef.current) {
+                                            mapInstanceRef.current.getCanvas().style.cursor = 'crosshair';
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     }
+                });
                 });
 
     
@@ -781,7 +795,124 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
 
     }, [highlightedTopoId, topoPoints]);
 
-    
+    // Effect to update map click handler when editingTopoId changes
+    useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
+        const map = mapInstanceRef.current;
+
+        const handleMapClick = (e: mapboxgl.MapMouseEvent & { lngLat: mapboxgl.LngLat; }) => {
+            // Check if in edit mode
+            if (editingTopoId) {
+                console.log('In edit mode, clicked at:', e.lngLat);
+                const clickedCoordinates = e.lngLat;
+                const locationData = { lng: clickedCoordinates.lng, lat: clickedCoordinates.lat };
+                
+                // Show confirmation popup
+                const confirmPopup = new mapboxgl.Popup()
+                    .setLngLat(clickedCoordinates)
+                    .setHTML(`
+                        <div style="font-family: sans-serif;">
+                            <p style="margin-bottom: 8px;">New location selected</p>
+                            <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Lat: ${clickedCoordinates.lat.toFixed(6)}, Lon: ${clickedCoordinates.lng.toFixed(6)}</p>
+                            <button id="confirm-location-button" style="width: 100%; margin-top: 4px; background-color: #10b981; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">Confirm & Update</button>
+                            <button id="cancel-location-button" style="width: 100%; margin-top: 4px; background-color: #6b7280; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">Cancel</button>
+                        </div>
+                    `)
+                    .setMaxWidth('300px')
+                    .setOffset(10)
+                    .addTo(map);
+
+                // Use Promise.resolve to ensure DOM is ready before attaching listeners
+                Promise.resolve().then(() => {
+                    const confirmBtn = confirmPopup.getElement()?.querySelector('#confirm-location-button');
+                    console.log('Confirm button found:', !!confirmBtn);
+                    if (confirmBtn) {
+                        const clickHandler = async () => {
+                            console.log('Confirm clicked, locationData:', locationData, 'sessionToken:', !!sessionToken, 'editingTopoId:', editingTopoId);
+                            if (locationData && sessionToken) {
+                                try {
+                                    const url = `/api/walltopos/location/${editingTopoId}`;
+                                    console.log('Sending PATCH to:', url);
+                                    const response = await fetch(url, {
+                                        method: 'PATCH',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${sessionToken}`,
+                                        },
+                                        body: JSON.stringify({
+                                            longitude: locationData.lng,
+                                            latitude: locationData.lat,
+                                        }),
+                                    });
+
+                                    console.log('Response status:', response.status);
+                                    if (response.ok) {
+                                        console.log('Topo location updated successfully');
+                                        confirmPopup.remove();
+                                        setEditingTopoId(undefined);
+                                        setNewTopoLocation(undefined);
+                                        if (mapInstanceRef.current) {
+                                            mapInstanceRef.current.getCanvas().style.cursor = '';
+                                        }
+                                        toast.success('Location updated successfully! Refresh the page to see the updated topo position.');
+                                    } else {
+                                        const errorText = await response.text();
+                                        console.error('Failed to update topo location:', response.status, errorText);
+                                        alert('Failed to update location: ' + errorText);
+                                    }
+                                } catch (error) {
+                                    console.error('Error updating topo location:', error);
+                                    alert('Error updating location: ' + String(error));
+                                }
+                            } else {
+                                console.log('Missing data for update:', { locationData, sessionToken });
+                            }
+                        };
+                        confirmBtn.addEventListener('click', clickHandler);
+                    }
+                });
+
+                Promise.resolve().then(() => {
+                    const cancelBtn = confirmPopup.getElement()?.querySelector('#cancel-location-button');
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', () => {
+                            console.log('Cancel clicked');
+                            confirmPopup.remove();
+                            setEditingTopoId(undefined);
+                            setNewTopoLocation(undefined);
+                            if (mapInstanceRef.current) {
+                                mapInstanceRef.current.getCanvas().style.cursor = '';
+                            }
+                        });
+                    }
+                });
+
+                return;
+            }
+
+            // Check if the click was on any feature layer
+            const features = mapInstanceRef.current?.queryRenderedFeatures(e.point);
+            const isFeatureClick = features?.some(f => 
+                (f.source && typeof f.source === 'string' && 
+                 (f.source.startsWith('area-polygon') || f.source.startsWith('area-collection')))
+            );
+            
+            // If clicking on empty space (no feature), close the popup
+            if (!isFeatureClick && currentPopupRef.current) {
+                currentPopupRef.current.remove();
+                currentPopupRef.current = null;
+            }
+        };
+
+        // Remove old handler and add new one
+        map.off('click', handleMapClick);
+        map.on('click', handleMapClick);
+
+        return () => {
+            map.off('click', handleMapClick);
+        };
+    }, [editingTopoId, newTopoLocation, sessionToken]);
 
     return(
         <>

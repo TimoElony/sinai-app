@@ -264,6 +264,7 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
             areas={areas} 
             highlightedTopoId={highlightedTopoId}
             selectedArea={selectedArea}
+            sessionToken={sessionToken}
           />
         </TabsContent>
       </Tabs>
