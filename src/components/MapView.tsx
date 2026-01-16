@@ -633,12 +633,21 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                             const grades = Array.isArray(data)
                                                 ? data.map(r => r.grade_best_guess || '—').filter(Boolean).sort()
                                                 : [];
-                                            const gradeLine = grades.length > 0 ? grades.join(', ') : 'No grades available';
+                                            const coloredGrades = grades.map((g) => {
+                                                let color = '#22c55e'; // green by default
+                                                if (g > '5c+') {
+                                                    color = '#eab308'; // yellow
+                                                    if (g >= '7a') {
+                                                        color = '#ef4444'; // red
+                                                    }
+                                                }
+                                                return `<span style="color: ${color}; font-weight: bold;">${g}</span>`;
+                                            }).join(', ');
                                             popup.setHTML(`
                                                 <div style="font-family: sans-serif;">
                                                     <p style="margin-bottom: 8px;"><strong>${cragName}</strong></p>
                                                     <p style="margin-bottom: 6px; color: #666;">${areaName}</p>
-                                                    <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Grades: ${gradeLine}</p>
+                                                    <p style="margin-bottom: 8px; color: #666; font-size: 13px;">Grades: ${grades.length > 0 ? coloredGrades : 'No grades available'}</p>
                                                     <button id="navigate-button-crag" style="width: 100%; margin-top: 8px; background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">View Routes</button>
                                                 </div>
                                             `);
