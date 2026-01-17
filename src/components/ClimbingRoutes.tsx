@@ -33,23 +33,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const [sortBy, setSortBy] = useState<'latest' | 'fullest' | 'alphabetical'>('latest');
     const topoRef = useRef<HTMLImageElement[] | null>([]);
 
-    useEffect(() => {
-        if (!selectedArea || !areaDetails) {
-            toast("No area selected or area details not available");
-            return;
-        }
-        if (selectedArea === selectedCrag) {
-            toast("Only one crag in this area");
-            if (selectedArea) {
-                onCragChange(selectedArea);
-            }
-        } else {
-            if (areaDetails?.crags?.[0]?.name) {
-                toast(`Multiple crags in this area, selecting first one ${areaDetails.crags[0].name}`);
-                onCragChange(areaDetails.crags[0].name);
-            }
-        }
-    },[selectedArea, areaDetails]);
+    // Removed auto-selection: user must pick a crag explicitly.
+    // This avoids unintended refetches and selection glitches.
 
     const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onAreaChange(e.target.value);
@@ -202,7 +187,8 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                 <>    
                     <h3>Select Crag within {areaDetails.name}</h3>
                     <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
-                        <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={(e)=>onCragChange(e.target.value)} value={selectedCrag}>
+                        <select className="bg-gray-200 p-2 rounded-lg shadow-md" onChange={(e)=>onCragChange(e.target.value)} value={selectedCrag || 'none selected'}>
+                            <option key="none selected" value="none selected">none selected</option>
                             {areaDetails.crags.map((crag) => {
                                 const cragName = crag.name;
                                 return(

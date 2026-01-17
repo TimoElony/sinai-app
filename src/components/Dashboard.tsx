@@ -104,12 +104,8 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
         const responseData = await response.json();        
 
         setAreaDetails({...areaData, ...responseData});
-        if (!skipCragSelection) {
-          // Only auto-select crag if it's the only one in the area
-          if (responseData.crags.length === 1) {
-            setSelectedCrag(area);
-          }
-        }
+        // No auto-selection of crag: user will choose explicitly.
+        // This prevents race conditions and unwanted resets.
 
       }
     } catch (error) {
@@ -207,6 +203,13 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
   }
 
   const handleCragChange = async (selectedValue: string, areaName?: string) => {
+    // Handle explicit clear: do not fetch, reset selections
+    if (!selectedValue || selectedValue === 'none selected') {
+      setSelectedCrag(undefined);
+      setRoutes([]);
+      setTopos([]);
+      return;
+    }
     setSelectedCrag(undefined);
     setLoading(true);
     setProgress(50);
