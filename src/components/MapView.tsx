@@ -894,6 +894,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                             if (button && onCragChange) {
                                                 button.addEventListener('click', () => {
                                                     onValueChange('routes');
+                                                    onAreaChange(areaName);
                                                     onCragChange(cragName, areaName);
                                                     popup.remove();
                                                 });
@@ -911,6 +912,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                             if (button && onCragChange) {
                                                 button.addEventListener('click', () => {
                                                     onValueChange('routes');
+                                                    onAreaChange(areaName);
                                                     onCragChange(cragName, areaName);
                                                     popup.remove();
                                                 });
