@@ -40,12 +40,16 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
         }
         if (selectedArea === selectedCrag) {
             toast("Only one crag in this area");
-            onCragChange(selectedArea)
+            if (selectedArea) {
+                onCragChange(selectedArea);
+            }
         } else {
-            toast(`Multiple crags in this area, selecting first one ${areaDetails?.crags[0].name}`);
-            onCragChange(areaDetails?.crags[0].name);
+            if (areaDetails?.crags?.[0]?.name) {
+                toast(`Multiple crags in this area, selecting first one ${areaDetails.crags[0].name}`);
+                onCragChange(areaDetails.crags[0].name);
+            }
         }
-    },[selectedArea]);
+    },[selectedArea, areaDetails]);
 
     const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onAreaChange(e.target.value);

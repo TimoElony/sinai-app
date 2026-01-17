@@ -318,7 +318,10 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                 if (navBtn) {
                                     navBtn.addEventListener('click', () => {
                                         console.log('Navigate to crag clicked', climbingAreaName, cragName);
-                                        onAreaChange(climbingAreaName || 'none');
+                                        // Only call onAreaChange if switching to a different area
+                                        if (climbingAreaName && climbingAreaName !== selectedArea) {
+                                            onAreaChange(climbingAreaName);
+                                        }
                                         if (onCragChange) {
                                             onCragChange(cragName, climbingAreaName);
                                         }
@@ -704,7 +707,10 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                             if (navBtn) {
                                 navBtn.addEventListener('click', () => {
                                     console.log('Navigate to crag clicked', climbingAreaName, cragName);
-                                    onAreaChange(climbingAreaName || 'none');
+                                    // Only call onAreaChange if switching to a different area
+                                    if (climbingAreaName && climbingAreaName !== selectedArea) {
+                                        onAreaChange(climbingAreaName);
+                                    }
                                     if (onCragChange) {
                                         onCragChange(cragName, climbingAreaName);
                                     }
@@ -803,13 +809,14 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
 
                     // Skip if already added
                     if (map.hasImage(chartImageId) || map.getLayer(chartLayerId)) {
+                        console.log(`⊘ Chart already exists for ${cragName} in ${area.name}`);
                         return;
                     }
 
                     // Require matching chart source; skip if missing to avoid misplacement
                     const source = map.getSource(sourceId);
                     if (!source) {
-                        console.warn(`No chart source for ${cragName} in ${area.name}, skipping chart`);
+                        console.warn(`⊘ No chart source for ${cragName} in ${area.name}, skipping chart - expected sourceId: ${sourceId}`);
                         return;
                     }
 
@@ -835,7 +842,7 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                     minzoom: 13,
                                 });
                                 chartsAdded++;
-                                console.log(`✓ Chart added for ${cragName}`);
+                                console.log(`✓ Chart added for ${cragName} in ${area.name} - LayerId: ${chartLayerId}`);
                                 
                                 // Add click handler for popup
                                 map.on('click', chartLayerId, async (e) => {
@@ -847,6 +854,9 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                     const properties = e.features?.[0]?.properties;
                                     const cragName = properties?.cragName || properties?.climbing_sector || 'Unknown crag';
                                     const areaName = properties?.areaName || properties?.climbing_area_name || 'Unknown area';
+                                    
+                                    console.log('Bar chart clicked - areaName:', areaName, 'cragName:', cragName, 'properties:', properties);
+                                    console.log('Chart layer ID:', chartLayerId, 'sourceId:', sourceId);
                                     
                                     const popup = new mapboxgl.Popup()
                                         .setLngLat(coordinates)
@@ -893,9 +903,16 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                             const button = document.getElementById('navigate-button-crag');
                                             if (button && onCragChange) {
                                                 button.addEventListener('click', () => {
+                                                    // Switch tab first to avoid race conditions
                                                     onValueChange('routes');
-                                                    onAreaChange(areaName);
-                                                    onCragChange(cragName, areaName);
+                                                    // Only change area if it's different from current
+                                                    if (areaName && areaName !== selectedArea) {
+                                                        onAreaChange(areaName);
+                                                    }
+                                                    // Delay crag change slightly to ensure it happens after tab switch
+                                                    setTimeout(() => {
+                                                        onCragChange(cragName, areaName);
+                                                    }, 50);
                                                     popup.remove();
                                                 });
                                             }
@@ -911,9 +928,16 @@ export default function MapView ({ topoPoints, onValueChange, onAreaChange, onCr
                                             const button = document.getElementById('navigate-button-crag');
                                             if (button && onCragChange) {
                                                 button.addEventListener('click', () => {
+                                                    // Switch tab first to avoid race conditions
                                                     onValueChange('routes');
-                                                    onAreaChange(areaName);
-                                                    onCragChange(cragName, areaName);
+                                                    // Only change area if it's different from current
+                                                    if (areaName && areaName !== selectedArea) {
+                                                        onAreaChange(areaName);
+                                                    }
+                                                    // Delay crag change slightly to ensure it happens after tab switch
+                                                    setTimeout(() => {
+                                                        onCragChange(cragName, areaName);
+                                                    }, 50);
                                                     popup.remove();
                                                 });
                                             }
