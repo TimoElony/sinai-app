@@ -29,12 +29,18 @@ export default function RouteDetailsModal({name, grade, length, bolts, pitches, 
   
   // Format the first ascent date
   const formatFADate = () => {
-    if (!faYear || !faMonth) return "Unknown";
+    // If no year at all, return Unknown
+    if (faYear === undefined || faYear === null || faYear === 0) return "Unknown";
+    
+    // If we have at least a year, show it
+    if (faMonth === undefined || faMonth === null || faMonth === 0) {
+      return `${faYear}`;
+    }
     
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
     // Validate month is in range before accessing array
-    if (faMonth < 1 || faMonth > 12) return "Unknown";
+    if (faMonth < 1 || faMonth > 12) return `${faYear}`;
     
     const monthStr = monthNames[faMonth - 1];
     
