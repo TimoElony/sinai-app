@@ -183,7 +183,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                     <UploadTopoModal sessionToken={sessionToken} selectedCrag={selectedCrag} selectedArea={selectedArea} refresh={refresh} setLoading={setLoading} setProgress={setProgress}/>
                 </div>
             }
-            {areaDetails && areaDetails.crags && areaDetails.crags.length > 1  && (
+            {areaDetails && areaDetails.crags && areaDetails.crags.length >= 1  && (
                 <>    
                     <h3>Select Crag within {areaDetails.name}</h3>
                     <div className="flex flex-col items-start md:flex-row md:items-center gap-2">

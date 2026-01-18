@@ -71,7 +71,7 @@ export default function Dashboard({sessionToken, initialArea}: {sessionToken: st
     setLoading(true);
     setProgress(50);
     try {
-      if (selectedValue === 'none') {
+      if (selectedValue === 'none' || selectedValue === 'none selected') {
         setAreaDetails(undefined);
         setSelectedArea(undefined);
         setSelectedCrag(undefined);
