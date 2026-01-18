@@ -13,12 +13,12 @@ export async function GET(
         
         if (area === crag) {
             relevantTopos = await pool.query(
-                "SELECT id, name, description, details, extracted_filename, climbing_routes_ids, climbing_area_name, climbing_sector, line_segments FROM wall_topos WHERE climbing_area_name = $1 ORDER BY updated_at DESC", 
+                "SELECT id, name, description, details, extracted_filename, climbing_routes_ids, climbing_area_name, climbing_sector, line_segments, detail_topo FROM wall_topos WHERE climbing_area_name = $1 ORDER BY updated_at DESC", 
                 [area]
             );
         } else {
             relevantTopos = await pool.query(
-                "SELECT id, name, description, details, extracted_filename, climbing_routes_ids, climbing_area_name, climbing_sector, line_segments FROM wall_topos WHERE climbing_area_name = $1 AND climbing_sector = $2 ORDER BY updated_at DESC",
+                "SELECT id, name, description, details, extracted_filename, climbing_routes_ids, climbing_area_name, climbing_sector, line_segments, detail_topo FROM wall_topos WHERE climbing_area_name = $1 AND climbing_sector = $2 ORDER BY updated_at DESC",
                 [area, crag]
             );
         }
@@ -59,11 +59,11 @@ export async function POST(
 
     try {
         const { area, crag } = await params;
-        const { title, description, name, longitude, latitude } = await request.json();
+        const { title, description, name, longitude, latitude, detail_topo } = await request.json();
         
         const newTopo = await pool.query(
-            "INSERT INTO wall_topos (description, details, extracted_filename, climbing_area_name, climbing_sector, longitude, latitude) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-            [title, description, name, area, crag, longitude, latitude]
+            "INSERT INTO wall_topos (description, details, extracted_filename, climbing_area_name, climbing_sector, longitude, latitude, detail_topo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            [title, description, name, area, crag, longitude, latitude, detail_topo || false]
         );
         
         await pool.query(

@@ -71,6 +71,7 @@ export type WallTopo = {
     climbing_area_name: string;
     climbing_sector: string;
     line_segments: Feature[];
+    detail_topo?: boolean;
 }
 
 export type Point = {

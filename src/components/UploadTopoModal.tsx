@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/src/components/ui/form"
 import { Input } from "@/src/components/ui/input"
+import { Switch } from "@/src/components/ui/switch";
   import { Button } from "@/src/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -28,6 +29,7 @@ const formSchema = z.object({
   description: z.string().min(2).max(200),
   longitude: z.number().min(24).max(37),
   latitude: z.number().min(22).max(32),
+  detail_topo: z.boolean().default(false),
   image: z.instanceof(File).refine((file) => file.size <= 8 * 1024 * 1024, {
     message: "File size should be less than 8MB",
   }),
@@ -42,6 +44,7 @@ const formSchema = z.object({
         description: "",
         longitude: 34,
         latitude: 27.8,
+        detail_topo: false,
         image: undefined,
       },
     });
@@ -164,6 +167,22 @@ const formSchema = z.object({
                         <Input type="number" {...field} onChange={(e)=>field.onChange(Number(e.target.value))} />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="detail_topo"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Detail Topo</FormLabel>
+                        <p className="text-sm text-gray-500">Hide by default (show only when route is selected)</p>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
                     </FormItem>
                   )}
                 />

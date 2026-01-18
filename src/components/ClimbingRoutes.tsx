@@ -31,6 +31,7 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
     const [formTopoNumber, setFormTopoNumber] = useState<number>(0);
     const [changeRoutesNotLines, setChangeRoutesNotLines] = useState<boolean>(false);
     const [sortBy, setSortBy] = useState<'latest' | 'fullest' | 'alphabetical'>('latest');
+    const [selectedRouteFilter, setSelectedRouteFilter] = useState<string | undefined>(undefined);
     const topoRef = useRef<HTMLImageElement[] | null>([]);
 
     // Removed auto-selection: user must pick a crag explicitly.
@@ -214,10 +215,43 @@ export default function  ClimbingRoutes ({areas, areaDetails, selectedArea, onAr
                         <option value="alphabetical">Alphabetical</option>
                     </select>
                 </div>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="filterRoute">Filter by route:</Label>
+                    <select 
+                        id="filterRoute"
+                        className="bg-gray-200 p-2 rounded-lg shadow-md"
+                        value={selectedRouteFilter || ''}
+                        onChange={(e) => setSelectedRouteFilter(e.target.value || undefined)}
+                    >
+                        <option value="">All topos</option>
+                        {routes.map((route) => (
+                            <option key={route.id} value={route.id}>{route.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
             {!topos? <></> :
             [...topos]
+                // Filter by selected route and detail_topo status
+                .filter((topo) => {
+                    // If a route filter is selected, only show topos with that route
+                    if (selectedRouteFilter) {
+                        const hasRoute = routes.some(r => r.id === selectedRouteFilter && r.wall_topo_ids.includes(topo.id));
+                        return hasRoute;
+                    }
+                    // If no route filter, hide detail_topo=true by default
+                    return !topo.detail_topo;
+                })
                 .sort((a, b) => {
+                    // When route filter is active, sort detail_topo=false first, then detail_topo=true
+                    if (selectedRouteFilter) {
+                        const aIsDetail = a.detail_topo ? 1 : 0;
+                        const bIsDetail = b.detail_topo ? 1 : 0;
+                        if (aIsDetail !== bIsDetail) {
+                            return aIsDetail - bIsDetail; // false (0) comes first
+                        }
+                    }
+                    
                     if (sortBy === 'latest') {
                         // Already sorted by updated_at DESC from API, but reversing for latest first
                         return 0; // Keep original order (already latest first from API)
